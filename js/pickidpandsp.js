@@ -141,8 +141,8 @@ const dFrag = document.createDocumentFragment();
   dFrag.appendChild(a);
   a.appendChild(img);
   a.appendChild(p);
-  //a.appendChild(pOrg);
-  //a.appendChild(pDescription);
+  a.appendChild(pOrg);
+  a.appendChild(pDescription);
   
   document.getElementById('spList').appendChild(dFrag);
   
