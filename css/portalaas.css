@@ -1,0 +1,142 @@
+/*För IdP-val i portalaaS*/
+.selectIdpDiv {
+margin-left: 1rem;
+margin-right: 1rem;
+margin-top: 2rem;
+margin-bottom: 2rem;
+text-align: center;
+padding-top: 5%;
+padding-bottom: 5%;
+background-color: white;
+color: black;
+box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+/*För header i portalaas*/
+.flex-header {
+  padding: 15px;
+  margin: 0;
+  background-color: #b53b26;
+  list-style: none;
+  -ms-box-orient: horizontal;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -moz-flex;
+  display: -webkit-flex;
+  display: flex;
+  justify-content: space-between;
+}
+
+.flex-headeritem-org {
+  width: auto;
+  height: auto;
+  color: white;
+  font-size: 16px;
+  text-align: center;
+}
+
+.flex-headeritem-search {
+  width: 25vw;
+  min-width: 200px;
+  height: auto;
+  color: black;
+  border-color: white;
+  margin: 12px 0px 12px 0px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.button {
+  background-color: #fab62d;
+  border: 2px solid #fab62d;
+  color: black;
+  padding: 16px 16px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+  margin: 5px;
+  border-radius: 15px;
+}
+.button:hover {
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+/*Generell css för samtliga portaler*/
+body {
+        margin: 0;
+        padding: 0;
+	min-height: 100vh;
+    	display: flex;
+    	flex-direction: column;
+	background-color: #F3F3F3;
+}
+
+footer{
+    margin-top: auto;
+}
+
+a:hover {
+   transform: scale(1.05);
+}
+
+.flex-container {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  -ms-box-orient: horizontal;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -moz-flex;
+  display: -webkit-flex;
+  display: flex;
+  justify-content: center;
+}
+
+.wrap    { 
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+}  
+
+.flex-item {
+  width: 20vw;
+  min-width: 300px;
+  height: 150px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  background: white;
+  margin: 10px;
+  padding: 12px;
+  color: black;
+  text-align: left;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: transform 300ms;
+}
+.flex-item-img {
+  float: left;
+  height: 40%;
+  margin-left: 10px;
+  margin-right: 15px;
+  border-radius: 4px;
+}
+.flex-item-txt {
+  margin: 0px;
+  padding-bottom: 5px;
+  font-size: 100%;
+  font-weight: bold;
+}
+.flex-item-org {
+  margin: 0px;
+  font-size: 16px;
+}
+.flex-item-description {
+  margin-top: 30px;
+  margin-left: 12px;
+  font-size: 16px;
+  color: DimGray;
+}
+
+

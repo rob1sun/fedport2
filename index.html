@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<head>
+<meta charset="UTF-8">
+<title>Federationsportalen</title>
+<link rel="icon" type="image/x-icon" href="https://robertsundin.se/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="css/portalaas.css">
+<script src="js/pickidpandsp.js" defer></script>
+</head>
+
+<html>
+<body>
+
+
+<!--TOP BAR-->
+<div class="flex-header wrap">
+<div class="flex-headeritem-org"><h1 id="show">Ingen vald organisation</h1></div>
+<input  class="flex-headeritem-search" type="text" id="searchInput" onkeyup="searchFilter()" placeholder="Sök efter en tjänst.." title="Skriv namn på tjänst">
+<div class="flex-headeritem-org"><button class="button" onclick="settings()">Inställningar</button></div>
+</div>
+
+
+<!--SETTINGS SECTION-->
+<section class="flex-container wrap" id="settings" style="padding:5px;background-color:white;display:none">
+<div>
+<button class="button" id="newIdp" onclick="newIdp()">Byt inloggning</button>
+<button class="button">Välj visade tjänster</button>
+<button class="button">Välj stil på korten</button>
+<button class="button">Egna länkar</button>
+<button class="button">Hjälp</button>
+</div>
+<div class="selectIdpDiv" id="settingsIdpContent" style="display:none">
+</section>
+
+
+<!--IDP PICKER-->
+<div class="selectIdpDiv" id="idpSelectDiv" style="display:block">
+<h2 id="selectIdpHeading"></h2>
+<select class="button" id="idpSelect" onchange="updateIdp()">
+<option value="" selected>Välj inloggning</option>
+</select>
+</div>
+
+
+<!--SERVICES SECTION-->
+<section id="spList" class="flex-container wrap"></section>
+
+
+
+</body>
+</html>
