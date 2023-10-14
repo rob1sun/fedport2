@@ -32,17 +32,22 @@
 <div class="selectIdpDiv" id="settingsIdpContent" style="display:none">
 </section>
 
-
 <!--IDP PICKER-->
 <div class="selectIdpDiv" id="idpSelectDiv" style="display:block">
 <h2 id="selectIdpHeading"></h2>
+<p id="currentIdp"></p>
 <select class="button" id="idpSelect" onchange="updateIdp()">
 <option value="" selected>Välj inloggning</option>
 </select>
+<button class="button" id="backToPortal" onclick="backToPortal()" style="display:none">Tillbaka till portalen</button>
 </div>
 
+<!--CARD STYLE-->
+<div class="cardStyleDiv" id="cardStyle" style="display:none">
+<h2>Välj vilket utseende du vill ha på korten i portalen</h2>
+</div>
 
-<!--SERVICES SECTION-->
+<!--SERVICES SSO SECTION-->
 <section id="spList" class="flex-container wrap"></section>
 
 
