@@ -141,8 +141,8 @@ const dFrag = document.createDocumentFragment();
   dFrag.appendChild(a);
   a.appendChild(img);
   a.appendChild(p);
-  a.appendChild(pOrg);
-  a.appendChild(pDescription);
+  //a.appendChild(pOrg);
+  //a.appendChild(pDescription);
   
   document.getElementById('spList').appendChild(dFrag);
   
@@ -167,13 +167,19 @@ function newIdp() {
   var x = document.getElementById("idpSelectDiv");
   if (x.style.display === "none") {
     x.style.display = "block";
-	document.getElementById("selectIdpHeading").innerHTML="Välj en ny inloggning";
+	document.getElementById("selectIdpHeading").innerHTML="Välj en ny inloggning eller gå tillbaka till portalen";
+	document.getElementById("currentIdp").innerHTML="Nuvarande val är: "+localStorage.getItem("idpOrgName");
+	document.getElementById("backToPortal").style.display="";
   } else {
     x.style.display = "none";
 	
   }
 }
 
+function backToPortal() {
+	document.getElementById("idpSelectDiv").style.display="none";
+	document.getElementById("settings").style.display="none";
+}
 
 
 /*Visa alert box och ladda därefter om dokumentet vid "välj en annan organisation"
