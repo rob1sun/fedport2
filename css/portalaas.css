@@ -156,7 +156,8 @@ a:hover {
   transition: transform 300ms;
 }
 .flex-miniitem-img {
-  height: 70%;
+  max-height: 70%;
+  max-width: 90px;
   border-radius: 4px;
 }
 .flex-miniitem-txt {
