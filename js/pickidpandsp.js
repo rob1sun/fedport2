@@ -49,8 +49,14 @@ const opt = document.createElement('option');
   
 }}
 
-//Kolla om det redan finns en vald IdP sen tidigare
+//kolla om cardStyle är valt annars sätt default full
+if (localStorage.getItem("cardStyle") == null) {
+	localStorage.setItem("cardStyle","full");
+  }
+//Sätt variabel som används för att välja css för utseende på korten
+let cardStyling=localStorage.getItem("cardStyle");
 
+//Kolla om det redan finns en vald IdP sen tidigare
 if (localStorage.getItem("idpOrgEntity") !== null) {
 	document.getElementById("idpSelectDiv").style.display = "none";
   } else {
@@ -58,12 +64,9 @@ if (localStorage.getItem("idpOrgEntity") !== null) {
 	document.getElementById("idpSelectDiv").style.display = "block";
 	document.getElementById("selectIdpHeading").innerHTML="Innan du kan använda portalen så måste du välja inloggning";
   }
-
-
-
+  
 
 //Sätt vald entityID som variabel - eller localStore i ny kod
-
  function updateIdp() {
   let userPickedIdp = document.getElementById("idpSelect").value;
   localStorage.setItem("idpOrgEntity",userPickedIdp);
@@ -122,14 +125,14 @@ if (localStorage.getItem("idpOrgEntity") !== null) {
 const dFrag = document.createDocumentFragment();
 
   const a = document.createElement('a');
-  a.className = "flex-item";
+  a.className = "flex-"+cardStyling+"item";
   a.setAttribute('href', concLink);
   a.target = "_blank";
   const img = document.createElement('img');
-  img.className = "flex-item-img";
+  img.className = "flex-"+cardStyling+"item-img";
   img.setAttribute('src', spImg);
   const p = document.createElement('p');
-  p.className = "flex-item-txt";
+  p.className = "flex-"+cardStyling+"item-txt";
   p.innerHTML = spDisplayName;
   const pOrg = document.createElement('p');
   pOrg.className = "flex-item-org";
@@ -138,17 +141,18 @@ const dFrag = document.createDocumentFragment();
   pDescription.innerHTML = spDescription;
   pDescription.className = "flex-item-description";
   
+
   dFrag.appendChild(a);
   a.appendChild(img);
   a.appendChild(p);
+if (localStorage.getItem("cardStyle")=="full"){
   a.appendChild(pOrg);
   a.appendChild(pDescription);
-  
+}
+
   document.getElementById('spList').appendChild(dFrag);
   
-  
-
-  
+ 
 			}}}
 
 //Visa och dölj inställningar - toggla knappen
@@ -176,10 +180,38 @@ function newIdp() {
   }
 }
 
+//Visa card style settings
+function cardStyleSettings() {
+  var x = document.getElementById("cardStyle");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+	
+  }
+}
+
+//Skriv vald card style till local storage
+function cardStyleSubmit() {
+    var ele = document.getElementsByName('cardStyle');
+    for (i = 0; i < ele.length; i++) {
+    if (ele[i].checked)
+        localStorage.setItem("cardStyle", ele[i].value);
+	    location.reload();
+            }
+        }
+
+
+
+//Tillbaka till portal från settings-sida
 function backToPortal() {
 	document.getElementById("idpSelectDiv").style.display="none";
 	document.getElementById("settings").style.display="none";
+	document.getElementById("cardStyle").style.display="none";
 }
+
+
+
 
 
 /*Visa alert box och ladda därefter om dokumentet vid "välj en annan organisation"
