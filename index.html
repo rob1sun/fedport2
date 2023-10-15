@@ -25,7 +25,7 @@
 <div>
 <button class="button" id="newIdp" onclick="newIdp()">Byt inloggning</button>
 <button class="button">Välj visade tjänster</button>
-<button class="button">Välj stil på korten</button>
+<button class="button" id="cardStyleSettings" onclick="cardStyleSettings()">Välj stil på korten</button>
 <button class="button">Egna länkar</button>
 <button class="button">Hjälp</button>
 </div>
@@ -43,13 +43,23 @@
 </div>
 
 <!--CARD STYLE-->
-<div class="cardStyleDiv" id="cardStyle" style="display:none">
+<div class="selectIdpDiv" id="cardStyle" style="display:none">
 <h2>Välj vilket utseende du vill ha på korten i portalen</h2>
+<input type="radio" name="cardStyle" value="full">Fyllig (standard)
+<input type="radio" name="cardStyle" value="mini">Kompakt
+<br>
+<button class="button" type="button" onclick="cardStyleSubmit()">Spara val</button>
+<button class="button" type="button" onclick="backToPortal()">Tillbaka till portalen</button>
+<br>
+<img src='img/full.png'><img src='img/mini.png'>
 </div>
+
+
+
+
 
 <!--SERVICES SSO SECTION-->
 <section id="spList" class="flex-container wrap"></section>
-
 
 
 </body>
