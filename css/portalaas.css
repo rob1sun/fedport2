@@ -32,7 +32,7 @@ z-index: 10;
 .flex-headeritem-org {
   width: auto;
   height: auto;
-  font-size: 16px;
+  font-size: clamp(10px, 1vw, 16px);
   text-align: center;
 }
 
