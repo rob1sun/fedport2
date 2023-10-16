@@ -1,14 +1,16 @@
 /*För IdP-val i portalaaS*/
 .selectIdpDiv {
-height: 100%;
-width: 100%;
+min-height: 70%;
+width: 96%;
+border-radius: 20px;
 text-align: center;
 padding-top: 5%;
 padding-bottom: 5%;
 background-color: #F3F3F3;
 color: black;
 box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-position: fixed;
+position: absolute;
+transform: translate(2%, 20px);
 z-index: 10;
 }
 
@@ -141,7 +143,7 @@ a:hover {
   font-size: 16px;
   color: DimGray;
 }
-/* CSS FÖR VAL AV MINIKORT nedan */
+/* CSS FÖR VAL AV MINIKORT */
 .flex-miniitem {
   width: 100px;
   height: 110px;
@@ -165,5 +167,29 @@ a:hover {
  margin-top: 2px;
  margin-bottom: 5px;
 }
-/* CSS FÖR VAL AV MINIKORT ovan */
+/* CSS FÖR FILTERLISTA VAL AV VISADE SERVICES */
+ul{
+width: 400px;
+}
 
+.img {
+height: 35px;
+margin: 5px 5px -5px 5px;
+vertical-align: sub;
+}
+.li {
+list-style: none;
+border-style: solid;
+border-width: thin;
+border-color: black;
+margin: 2px;
+padding: 10px 0px 5px 5px;
+}
+.label {
+font-size: 20px;
+}
+.inp{
+height: 20px;
+width: 20px;
+margin: 10px;
+}

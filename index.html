@@ -11,6 +11,34 @@
 <html>
 <body>
 
+<!--IDP PICKER-->
+<div class="selectIdpDiv" id="idpSelectDiv" style="display:block">
+<h2 id="selectIdpHeading"></h2>
+<p id="currentIdp"></p>
+<select class="button" id="idpSelect" onchange="updateIdp()">
+<option value="" selected>Välj inloggning</option>
+</select>
+<button class="button" id="backToPortal" onclick="backToPortal()" style="display:none">Tillbaka till portalen</button>
+</div>
+
+<!--SETTINGS CARD STYLE-->
+<div class="selectIdpDiv" id="cardStyle" style="display:none">
+<h2>Välj vilket utseende du vill ha på korten i portalen</h2>
+<input type="radio" name="cardStyle" value="full">Fyllig (standard)
+<input type="radio" name="cardStyle" value="mini">Kompakt
+<br>
+<button class="button" type="button" onclick="cardStyleSubmit()">Spara val</button>
+<button class="button" type="button" onclick="backToPortal()">Tillbaka till portalen</button>
+<br>
+<img src='img/full.png'><img src='img/mini.png'>
+</div>
+
+
+<!--SETTINGS FILTER SERVICES-->
+<div class="selectIdpDiv" id="spFilterDiv" style="display:none">
+<ul id="spFilterList" ></ul>
+<button class="button" onclick="myPicked()">Välj markerade tjänster</button>
+</div>
 
 <!--TOP BAR-->
 <div class="flex-header wrap">
@@ -24,39 +52,13 @@
 <section class="flex-container wrap" id="settings" style="padding:5px;background-color:white;display:none">
 <div>
 <button class="button" id="newIdp" onclick="newIdp()">Byt inloggning</button>
-<button class="button">Välj visade tjänster</button>
+<button class="button" onclick="spFilterSettings()">Välj visade tjänster</button>
 <button class="button" id="cardStyleSettings" onclick="cardStyleSettings()">Välj stil på korten</button>
 <button class="button">Egna länkar</button>
 <button class="button">Hjälp</button>
 </div>
 <div class="selectIdpDiv" id="settingsIdpContent" style="display:none">
 </section>
-
-<!--IDP PICKER-->
-<div class="selectIdpDiv" id="idpSelectDiv" style="display:block">
-<h2 id="selectIdpHeading"></h2>
-<p id="currentIdp"></p>
-<select class="button" id="idpSelect" onchange="updateIdp()">
-<option value="" selected>Välj inloggning</option>
-</select>
-<button class="button" id="backToPortal" onclick="backToPortal()" style="display:none">Tillbaka till portalen</button>
-</div>
-
-<!--CARD STYLE-->
-<div class="selectIdpDiv" id="cardStyle" style="display:none">
-<h2>Välj vilket utseende du vill ha på korten i portalen</h2>
-<input type="radio" name="cardStyle" value="full">Fyllig (standard)
-<input type="radio" name="cardStyle" value="mini">Kompakt
-<br>
-<button class="button" type="button" onclick="cardStyleSubmit()">Spara val</button>
-<button class="button" type="button" onclick="backToPortal()">Tillbaka till portalen</button>
-<br>
-<img src='img/full.png'><img src='img/mini.png'>
-</div>
-
-
-
-
 
 <!--SERVICES SSO SECTION-->
 <section id="spList" class="flex-container wrap"></section>

@@ -1,3 +1,7 @@
+/*TODO
+- Flytta alla globala variabler till toppen
+*/
+
 //Sökfilter
 function searchFilter() {
     var input, filter, ul, li, a, i, txtValue;
@@ -111,6 +115,17 @@ if (localStorage.getItem("idpOrgEntity") !== null) {
             .catch(function (err) {
                 console.log('error: ' + err);
             });
+
+//Gör variabler i efterföljande funktion globala för att komma åt i ex filterlistan 
+
+/*
+var concLink;
+var spDisplayName;
+var spImg;
+var spShortDescription;
+var spDescription;
+*/
+
 //Append json och nästla efterföljande script
         function appendSpData(spData) {
 			
@@ -151,6 +166,38 @@ if (localStorage.getItem("cardStyle")=="full"){
 }
 
   document.getElementById('spList').appendChild(dFrag);
+  
+ //Visa filtersida för services
+const dFragFilter = document.createDocumentFragment();
+				
+  const liFilter = document.createElement('li');
+  liFilter.className = "li";
+  
+  const imgFilter = document.createElement('img');
+  imgFilter.className = "img";
+  imgFilter.setAttribute('src', spImg);
+  
+  const inpFilter = document.createElement('input');
+  inpFilter.setAttribute('class', "inp");
+  inpFilter.setAttribute('type', "checkbox");
+  inpFilter.setAttribute('id', spDisplayName);
+  inpFilter.setAttribute('name', spDisplayName);
+  inpFilter.setAttribute('value', spDisplayName);
+  
+  const labelFilter = document.createElement('label');
+  labelFilter.className = "label";
+  labelFilter.setAttribute('for', spDisplayName); //KOLLA OM DENNA BEHÖVS
+  labelFilter.innerHTML = spDisplayName;
+  
+  dFragFilter.appendChild(liFilter);
+  liFilter.appendChild(inpFilter);
+  liFilter.appendChild(imgFilter);
+  liFilter.appendChild(labelFilter);
+  
+  
+  
+document.getElementById('spFilterList').appendChild(dFragFilter); 
+  
   
  
 			}}}
@@ -200,6 +247,39 @@ function cardStyleSubmit() {
 	    location.reload();
             }
         }
+
+//Visa val av visade tjänster
+function spFilterSettings() {
+  var x = document.getElementById("spFilterDiv");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+	
+  }
+}
+
+
+
+//Hämta värden i filterlista och skriv till localStorage
+document.querySelectorAll('input[type="checkbox"]:checked')
+
+const ul = document.querySelector('ul')
+let selected = [];
+
+ul.addEventListener('change', event => {
+  if (event.target.type === 'checkbox') {
+    const checked = document.querySelectorAll('input[type="checkbox"]:checked')
+    selected = Array.from(checked).map(x => x.value)
+	}
+})
+
+  function myPicked() {
+  let string = JSON.stringify(selected);
+  localStorage.setItem("pickedServices",string);
+  document.getElementById("spFilterDiv").style.display="none";
+  document.getElementById("settings").style.display="none";
+  }	
 
 
 
