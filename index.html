@@ -24,19 +24,19 @@
 <!--SETTINGS CARD STYLE-->
 <div class="selectIdpDiv" id="cardStyle" style="display:none">
 <h2>Välj vilket utseende du vill ha på korten i portalen</h2>
+<img src="img/full.png" style="margin:8px;"><img src="img/mini.png" style="margin:8px;">
+<br>
 <input type="radio" name="cardStyle" value="full">Fyllig (standard)
 <input type="radio" name="cardStyle" value="mini">Kompakt
 <br>
 <button class="button" type="button" onclick="cardStyleSubmit()">Spara val</button>
 <button class="button" type="button" onclick="backToPortal()">Tillbaka till portalen</button>
-<br>
-<img src='img/full.png'><img src='img/mini.png'>
 </div>
 
 
 <!--SETTINGS FILTER SERVICES-->
 <div class="selectIdpDiv" id="spFilterDiv" style="display:none">
-<ul id="spFilterList" ></ul>
+<ul class="ulFilter" id="spFilterList" ></ul>
 <button class="button" onclick="myPicked()">Välj markerade tjänster</button>
 </div>
 

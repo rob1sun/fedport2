@@ -168,14 +168,13 @@ a:hover {
  margin-bottom: 5px;
 }
 /* CSS FÖR FILTERLISTA VAL AV VISADE SERVICES */
-ul{
-width: 400px;
+.ulFilter{
+width: 300px;
 }
 
 .img {
-height: 35px;
-margin: 5px 5px -5px 5px;
-vertical-align: sub;
+height: 25px;
+margin-left: 5px;
 }
 .li {
 list-style: none;
@@ -184,12 +183,14 @@ border-width: thin;
 border-color: black;
 margin: 2px;
 padding: 10px 0px 5px 5px;
+display: flex;
+align-items; left;
 }
 .label {
-font-size: 20px;
+font-size: 16px;
+margin-left: 5px;
 }
 .inp{
-height: 20px;
-width: 20px;
-margin: 10px;
+margin-left: 5px;
+
 }

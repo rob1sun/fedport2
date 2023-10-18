@@ -116,18 +116,11 @@ if (localStorage.getItem("idpOrgEntity") !== null) {
                 console.log('error: ' + err);
             });
 
-//Gör variabler i efterföljande funktion globala för att komma åt i ex filterlistan 
 
-/*
-var concLink;
-var spDisplayName;
-var spImg;
-var spShortDescription;
-var spDescription;
-*/
 
 //Append json och nästla efterföljande script
         function appendSpData(spData) {
+			
 			
             for (let x = 0; x < spData.length; x++) {
 				let concLink = spData[x].spLink + pickedIdp + spData[x].spTarget;
