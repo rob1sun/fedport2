@@ -1,12 +1,10 @@
 // XXXXXXXXXXXXXXXXX <TODO> XXXXXXXXXXXXXXXXXXXX
-//- SÖKFUNKTIONEN FUNGERAR INTE LÄNGRE!! Troligtvis eftersom båda filterna använder display:xxx
 //- Markera/avmarkera alla på filtersidan
-//- Visa vilka tjänster som redan är valda på något sätt på filtersidan
-//- Om man aktivt valt att avmarkera alla tjänster så blir sidan tom. Behålla så eller inte?
+//- Visa vilka tjänster som redan är valda på filtersidan
+//- Om man aktivt valt att avmarkera alla tjänster så blir sidan tom. Behålla så eller inte? Kanske bra om även egna länkar.
 //- Avsnitt "Egna länkar"
 //- Avsnitt "Hjälp"
-//- Parkera portal v2 och se över ändringar till v3 (ex: GUI, alfabetisk oavsett versaler, egen sortering mm)
-
+//- Parkera portal v2 och se över förbättringar till v3 (ex: GUI, alfabetisk oavsett versaler, egen sortering mm)
 // XXXXXXXXXXXXXXXXX </TODO> XXXXXXXXXXXXXXXXXXXX
 
 // XXXXXXXXXXXXXXXXX <GLOBALA VARIABLER> XXXXXXXXXXXXXXXXXXXX
@@ -321,6 +319,7 @@ function backToPortal() {
 	document.getElementById("idpSelectDiv").style.display="none";
 	document.getElementById("settings").style.display="none";
 	document.getElementById("cardStyle").style.display="none";
+	document.getElementById("spFilterDiv").style.display="none";
 }
 
 //Sökfilter i top-bar
