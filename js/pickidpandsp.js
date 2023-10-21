@@ -1,27 +1,42 @@
-/*TODO
-- Flytta alla globala variabler till toppen
-*/
+// XXXXXXXXXXXXXXXXX <TODO> XXXXXXXXXXXXXXXXXXXX
+//- SÖKFUNKTIONEN FUNGERAR INTE LÄNGRE!! Troligtvis eftersom båda filterna använder display:xxx
+//- Markera/avmarkera alla på filtersidan
+//- Visa vilka tjänster som redan är valda på något sätt på filtersidan
+//- Om man aktivt valt att avmarkera alla tjänster så blir sidan tom. Behålla så eller inte?
+//- Avsnitt "Egna länkar"
+//- Avsnitt "Hjälp"
+//- Parkera portal v2 och se över ändringar till v3 (ex: GUI, alfabetisk oavsett versaler, egen sortering mm)
 
-//Sökfilter
-function searchFilter() {
-    var input, filter, ul, li, a, i, txtValue;
-    input = document.getElementById("searchInput");
-    filter = input.value.toUpperCase();
-    div = document.getElementById("spList");
-    a = div.getElementsByTagName("a");
-    for (i = 0; i < a.length; i++) {
-        p = a[i].getElementsByTagName("p")[0];
-        txtValue = a.textContent || p.innerText;
-        if (txtValue.toUpperCase().indexOf(filter) > -1) {
-            a[i].style.display = "";
-        } else {
-            a[i].style.display = "none";
-        }
-    }
-}
+// XXXXXXXXXXXXXXXXX </TODO> XXXXXXXXXXXXXXXXXXXX
 
-//Läs in IdP-array från json
-{
+// XXXXXXXXXXXXXXXXX <GLOBALA VARIABLER> XXXXXXXXXXXXXXXXXXXX
+let pickedIdp; //vald IdP
+//let filterCheck = localStorage.getItem("pickedServices"); //Valda tjänster att visa
+let cardStyling; //Utseende på SSO-korten
+
+// XXXXXXXXXXXXXXXXX </GLOBALA VARIABLER> XXXXXXXXXXXXXXXXXXXX
+// XXXXXXXXXXXXXXXXX <KONTROLL AV TIDIGARE SPARADE VÄRDEN I LOCAL STORAGE> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+//Kolla om det redan finns en vald IdP sen tidigare
+if (localStorage.getItem("idpOrgEntity") !== null) {
+	document.getElementById("idpSelectDiv").style.display = "none";
+  } else {
+    document.getElementById("spList").style.display = "none";
+	document.getElementById("idpSelectDiv").style.display = "block";
+	document.getElementById("selectIdpHeading").innerHTML="Innan du kan använda portalen så måste du välja inloggning";
+  }
+
+//kolla om cardStyle är valt annars sätt default full
+if (localStorage.getItem("cardStyle") == null) {
+	localStorage.setItem("cardStyle","full");
+  }
+//Sätt variabel som används för att välja css för utseende på SSO-korten
+localStorage.getItem("cardStyle");
+
+// XXXXXXXXXXXXXXXXX </KONTROLL AV TIDIGARE SPARADE VÄRDEN I LOCAL STORAGE> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+// XXXXXXXXXXXXXXXXXX <ANVÄNDARORGANISATION> XXXXXXXXXXXXXXXXXXXXXXXX
+
+//Läs in IdP-array från json och...
 		fetch('https://fedfeeds.robertsundin.se/idp/json/multiidp.json')
             .then(function (idpResponse) {
                 return idpResponse.json();
@@ -32,52 +47,33 @@ function searchFilter() {
             .catch(function (err) {
                 console.log('error: ' + err);
             });
-//Append json och nästla efterföljande script
+
+//Append json och...
         function appendIdpData(idpData) {
 			
             for (let y = 0; y < idpData.length; y++) {
 				let idpDisplayName = idpData[y].idpDisplayName
 				let idpEntityId = idpData[y].idpEntityId
 				let idpImg = idpData[y].idpImg
-				
-//Skapa lista och infoga på sida
+
+//Skapa lista för IdP-val och infoga på sida
 const dFragIdp = document.createDocumentFragment();
-				
 const opt = document.createElement('option');
+
   opt.textContent = idpDisplayName;
   opt.value = idpEntityId;
   
   dFragIdp.appendChild(opt);
   
   document.getElementById("idpSelect").appendChild(dFragIdp);
+		}}
   
-}}
-
-//kolla om cardStyle är valt annars sätt default full
-if (localStorage.getItem("cardStyle") == null) {
-	localStorage.setItem("cardStyle","full");
-  }
-//Sätt variabel som används för att välja css för utseende på korten
-let cardStyling=localStorage.getItem("cardStyle");
-
-//Kolla om det redan finns en vald IdP sen tidigare
-if (localStorage.getItem("idpOrgEntity") !== null) {
-	document.getElementById("idpSelectDiv").style.display = "none";
-  } else {
-    document.getElementById("spList").style.display = "none";
-	document.getElementById("idpSelectDiv").style.display = "block";
-	document.getElementById("selectIdpHeading").innerHTML="Innan du kan använda portalen så måste du välja inloggning";
-  }
-  
-
-//Sätt vald entityID som variabel - eller localStore i ny kod
+//När användaren valt - skriv vald entityID till localStore och...
  function updateIdp() {
   let userPickedIdp = document.getElementById("idpSelect").value;
   localStorage.setItem("idpOrgEntity",userPickedIdp);
   
-
-
-// sätt text från selected option som variabel
+// sätt text från selected option som variabel och ladda om dokumentet
 const pickedIdpDisplay = (el) => {
   if (el.selectedIndex === -1) {
     return null;
@@ -91,45 +87,74 @@ localStorage.setItem("idpOrgName",text);
   location.reload();
 
  }
-  
-  const pickedIdp = localStorage.getItem("idpOrgEntity");
+// Uppdatera global variabel för vald IdP
+  pickedIdp = localStorage.getItem("idpOrgEntity");
 
-
-// infoga text för vald option i dokumentet
-
+// Kolla om IdP finns i localStore och infoga text för vald option i dokumentet - annars default text
 if (localStorage.getItem("idpOrgEntity") !== null) {
 	document.getElementById("show").innerHTML = localStorage.getItem("idpOrgName");
   } else {
     document.getElementById("show").innerHTML = "Federationsportalen";
   }
+  
+//kolla om cardStyle är valt annars sätt default full
+if (localStorage.getItem("cardStyle") == null) {
+	localStorage.setItem("cardStyle","full");
+  }
+//Sätt variabel som används för att välja css för utseende på korten
+cardStyling=localStorage.getItem("cardStyle");
 
- 	
-//Läs in SP-array från json
+// XXXXXXXXXXXXXXXXXXXXXXXXX </ANVÄNDARORGANISATION> XXXXXXXXXXXXXXXXXXXXXXXX
+
+// XXXXXXXXXXXXXXXXXXXXXXXXX <TJÄNSTER> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+//Läs in SP-array från JSON
 		fetch('https://fedfeeds.robertsundin.se/sp/json/splink.json')
             .then(function (spResponse) {
                 return spResponse.json();
             })
             .then(function (spData) {
                 appendSpData(spData);
+				appendSpDataFilter(spData);//för sidan med val av visade tjänster
             })
             .catch(function (err) {
                 console.log('error: ' + err);
             });
 
-
-
-//Append json och nästla efterföljande script
+//Append json och...
         function appendSpData(spData) {
+
+//Hämta valda tjänster ur localStorage. Om null fyll array (inte localStorage) med alla spDisplayName och...
+let spFilter= [];
+
+if (localStorage.getItem("pickedServices") !== null){
+spFilter = JSON.parse(localStorage.getItem("pickedServices"))
+} 
+else {
+
+           for (let x = 0; x < spData.length; x++) {
+				fullServices = spData[x].spDisplayName;
+				spFilter.push(fullServices); 
+}
+}
+
+//Matcha SP-feed mot array med valda SP och...
+ for (let y = 0; y < spFilter.length; y++) {
+	let obj = [{"spData_spDisplayName": spFilter[y]}];
 			
-			
-            for (let x = 0; x < spData.length; x++) {
-				let concLink = spData[x].spLink + pickedIdp + spData[x].spTarget;
-				let spDisplayName = spData[x].spDisplayName
-				let spImg = spData[x].spImg
-				let spShortDescription = spData[x].shortDescription
-				let spDescription = spData[x].description
+	let result = spData.filter(c => obj.some(s => s.spData_spDisplayName === c.spDisplayName));	  
+
+
+//Generera innehåll i SSO-kort och...
+            for (let x = 0; x < result.length; x++) {
+				let concLink = result[x].spLink + pickedIdp + result[x].spTarget;
+				spDisplayName = result[x].spDisplayName;
+				let spImg = result[x].spImg;
+				let spShortDescription = result[x].shortDescription
+				let spDescription = result[x].description
+
 				
-//Skapa lista och infoga på sida
+//Skapa lista med SSO-kort och infoga på sida
 const dFrag = document.createDocumentFragment();
 
   const a = document.createElement('a');
@@ -153,14 +178,30 @@ const dFrag = document.createDocumentFragment();
   dFrag.appendChild(a);
   a.appendChild(img);
   a.appendChild(p);
+  
+//Utseende på SSO-kort om fyllig stil valts
 if (localStorage.getItem("cardStyle")=="full"){
   a.appendChild(pOrg);
   a.appendChild(pDescription);
 }
 
   document.getElementById('spList').appendChild(dFrag);
-  
- //Visa filtersida för services
+		}}}
+// XXXXXXXXXXXXXXXXXXXXXXXXX </TJÄNSTER> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+// XXXXXXXXXXXXXXXXXXXXXXXXX <VAL AV VISADE TJÄNSTER> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+//Generera innehåll i lista med tjänster och...			
+			function appendSpDataFilter(spData) {
+
+            for (let x = 0; x < spData.length; x++) {
+				let concLink = spData[x].spLink + pickedIdp + spData[x].spTarget;
+				let spDisplayName = spData[x].spDisplayName
+				let spImg = spData[x].spImg
+				let spShortDescription = spData[x].shortDescription
+				let spDescription = spData[x].description
+ 
+ //Skapa lista för val av tjänster och infoga på sida
 const dFragFilter = document.createDocumentFragment();
 				
   const liFilter = document.createElement('li');
@@ -187,13 +228,26 @@ const dFragFilter = document.createDocumentFragment();
   liFilter.appendChild(imgFilter);
   liFilter.appendChild(labelFilter);
   
-  
-  
-document.getElementById('spFilterList').appendChild(dFragFilter); 
-  
-  
- 
-			}}}
+document.getElementById('spFilterList').appendChild(dFragFilter);
+
+}}
+
+//Hämta värden i filterlista och skriv till localStorage
+document.querySelectorAll('input[type="checkbox"]:checked')
+
+const ul = document.querySelector('ul')
+let selected = [];
+
+ul.addEventListener('change', event => {
+  if (event.target.type === 'checkbox') {
+    const checked = document.querySelectorAll('input[type="checkbox"]:checked')
+    selected = Array.from(checked).map(x => x.value)
+	}
+})
+
+// XXXXXXXXXXXXXXXXXXXXXXXXX </VAL AV VISADE TJÄNSTER> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+// XXXXXXXXXXXXXXXXXXXXXXXXX <DIVERSE FUNKTIONER SOM INITIERAS AV ANVÄNDAREN> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 //Visa och dölj inställningar - toggla knappen
 function settings() {
@@ -214,6 +268,7 @@ function newIdp() {
 	document.getElementById("selectIdpHeading").innerHTML="Välj en ny inloggning eller gå tillbaka till portalen";
 	document.getElementById("currentIdp").innerHTML="Nuvarande val är: "+localStorage.getItem("idpOrgName");
 	document.getElementById("backToPortal").style.display="";
+	alert("Du kommer nu att kunna göra om ditt val av organisation, men tänk på att om du redan har loggat in i en tjänst så kommer tjänsten att komma ihåg den inloggningen. Du kan därför behöva stänga webbläsaren och öppna portalen igen.");
   } else {
     x.style.display = "none";
 	
@@ -252,29 +307,14 @@ function spFilterSettings() {
   }
 }
 
-
-
-//Hämta värden i filterlista och skriv till localStorage
-document.querySelectorAll('input[type="checkbox"]:checked')
-
-const ul = document.querySelector('ul')
-let selected = [];
-
-ul.addEventListener('change', event => {
-  if (event.target.type === 'checkbox') {
-    const checked = document.querySelectorAll('input[type="checkbox"]:checked')
-    selected = Array.from(checked).map(x => x.value)
-	}
-})
-
-  function myPicked() {
+//Skriv val av visade tjänster till localStorage och tillbaka till huvudsida
+  function myPickedServices() {
   let string = JSON.stringify(selected);
   localStorage.setItem("pickedServices",string);
   document.getElementById("spFilterDiv").style.display="none";
   document.getElementById("settings").style.display="none";
+  location.reload();
   }	
-
-
 
 //Tillbaka till portal från settings-sida
 function backToPortal() {
@@ -283,13 +323,24 @@ function backToPortal() {
 	document.getElementById("cardStyle").style.display="none";
 }
 
-
-
-
-
-/*Visa alert box och ladda därefter om dokumentet vid "välj en annan organisation"
-function reload() {
-  alert("Du kommer nu att kunna göra om ditt val av organisation, men tänk på att om du redan har loggat in i en tjänst så kommer tjänsten att komma ihåg den inloggningen. Du kan därför behöva stänga webbläsaren och öppna portalen igen.");
-  location.reload();
+//Sökfilter i top-bar
+function searchFilter() {
+    var input, filter, ul, li, a, i, txtValue;
+    input = document.getElementById("searchInput");
+    filter = input.value.toUpperCase();
+    div = document.getElementById("spList");
+    a = div.getElementsByTagName("a");
+    for (i = 0; i < a.length; i++) {
+        p = a[i].getElementsByTagName("p")[0];
+        txtValue = a.textContent || p.innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            a[i].style.display = "";
+        } else {
+            a[i].style.display = "none";
+        }
+    }
 }
-*/
+
+// XXXXXXXXXXXXXXXXXXXXXXXXX </DIVERSE FUNKTIONER SOM INITIERAS AV ANVÄNDAREN> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+
