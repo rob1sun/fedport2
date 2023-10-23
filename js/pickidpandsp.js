@@ -1,16 +1,21 @@
 // XXXXXXXXXXXXXXXXX <TODO> XXXXXXXXXXXXXXXXXXXX
+//- Lägg till "är du säker på?" vid klick på återställ
 //- Markera/avmarkera alla på filtersidan
 //- Visa vilka tjänster som redan är valda på filtersidan
 //- Om man aktivt valt att avmarkera alla tjänster så blir sidan tom. Behålla så eller inte? Kanske bra om även egna länkar.
-//- Avsnitt "Egna länkar"
+//- Gör en pil eller något i knappen som togglar menyn så man förstår att man öppnar/stänger
+//- Visa egna länkar i SSO-vyn
+//- Snyggare visning av egna länkar i vyn för egna länkar
+//- Möjlighet att ta bort egen länk
 //- Avsnitt "Hjälp"
 //- Parkera portal v2 och se över förbättringar till v3 (ex: GUI, alfabetisk oavsett versaler, egen sortering mm)
 // XXXXXXXXXXXXXXXXX </TODO> XXXXXXXXXXXXXXXXXXXX
 
 // XXXXXXXXXXXXXXXXX <GLOBALA VARIABLER> XXXXXXXXXXXXXXXXXXXX
-let pickedIdp; //vald IdP
-//let filterCheck = localStorage.getItem("pickedServices"); //Valda tjänster att visa
-let cardStyling; //Utseende på SSO-korten
+var pickedIdp; //vald IdP
+var cardStyling; //Utseende på SSO-korten
+var customUrlArray; //Array för egna länkar
+var stringCustomUrl; // För att läsa in egna länkar i html (radera om annan metod i senare kod)
 
 // XXXXXXXXXXXXXXXXX </GLOBALA VARIABLER> XXXXXXXXXXXXXXXXXXXX
 // XXXXXXXXXXXXXXXXX <KONTROLL AV TIDIGARE SPARADE VÄRDEN I LOCAL STORAGE> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -244,6 +249,28 @@ ul.addEventListener('change', event => {
 })
 
 // XXXXXXXXXXXXXXXXXXXXXXXXX </VAL AV VISADE TJÄNSTER> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+// XXXXXXXXXXXXXXXXXXXXXXXXX <EGNA LÄNKAR> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+//Kolla om det finns sparade länkar sedan tidigare och läs i så fall in dem på sidan - else - tom array
+
+if (localStorage.getItem("savedUrls") !== null){
+	customUrlArray = JSON.parse(localStorage.getItem("savedUrls"));
+	stringCustomUrl = JSON.stringify(customUrlArray);
+	document.getElementById("showSavedUrls").innerHTML = stringCustomUrl;
+}
+else {
+	customUrlArray = [];
+}
+
+//Lägg till ny egen länk
+function addCustomUrl(){
+	let customUrlObject = {custName:custName.value, custUrl:custUrl.value};
+	customUrlArray.push(customUrlObject);
+		stringCustomUrl = JSON.stringify(customUrlArray);
+		document.getElementById("showSavedUrls").innerHTML = stringCustomUrl;
+		localStorage.setItem("savedUrls",stringCustomUrl);
+}
+// XXXXXXXXXXXXXXXXXXXXXXXXX </EGNA LÄNKAR> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 // XXXXXXXXXXXXXXXXXXXXXXXXX <DIVERSE FUNKTIONER SOM INITIERAS AV ANVÄNDAREN> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -305,6 +332,17 @@ function spFilterSettings() {
   }
 }
 
+//Visa sida för att lägga till egna URL
+function customUrlSettings() {
+  var x = document.getElementById("customUrlDiv");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+	
+  }
+}
+
 //Skriv val av visade tjänster till localStorage och tillbaka till huvudsida
   function myPickedServices() {
   let string = JSON.stringify(selected);
@@ -320,6 +358,13 @@ function backToPortal() {
 	document.getElementById("settings").style.display="none";
 	document.getElementById("cardStyle").style.display="none";
 	document.getElementById("spFilterDiv").style.display="none";
+	document.getElementById("customUrlDiv").style.display="none";
+}
+
+//Rensa localStorage och ladda om dokumentet
+function clearAll() {
+	localStorage.clear();
+	location.reload();
 }
 
 //Sökfilter i top-bar
@@ -341,5 +386,4 @@ function searchFilter() {
 }
 
 // XXXXXXXXXXXXXXXXXXXXXXXXX </DIVERSE FUNKTIONER SOM INITIERAS AV ANVÄNDAREN> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
 

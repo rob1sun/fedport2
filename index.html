@@ -40,6 +40,24 @@
 <button class="button" type="button" onclick="backToPortal()">Tillbaka till portalen</button>
 </div>
 
+<!--CUSTOM URL:S-->
+<div class="selectIdpDiv" id="customUrlDiv" style="display:none">
+<p>Här blir det egna urlar</p>
+<!--FÖR TESTNING, SKA IN I SCRIPT SEN XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-->
+<div>
+  <label for="custName">Namn i portalen: </label>
+  <input type="text" id="custName" name="custName">
+  <label for="custUrl">Adress till sidan: </label>
+  <input type="text" id="custUrl" name="custUrl">
+  <input type="button" onclick="return addCustomUrl();" value="Spara min länk">
+</div>
+
+
+<button class="button" type="button" onclick="backToPortal()">Tillbaka till portalen</button>
+<div id="showSavedUrls"></div>
+
+</div>
+
 <!--TOP BAR-->
 <div class="flex-header wrap">
 <div class="flex-headeritem-org"><h1 id="show">Ingen vald organisation</h1></div>
@@ -51,10 +69,11 @@
 <section class="flex-container wrap" id="settings" style="padding:5px;background-color:white;display:none">
 <div>
 <button class="button" id="newIdp" onclick="newIdp()">Byt inloggning</button>
-<button class="button" onclick="spFilterSettings()">Välj visade tjänster</button>
-<button class="button" id="cardStyleSettings" onclick="cardStyleSettings()">Välj stil på korten</button>
-<button class="button">Egna länkar</button>
+<button class="button" onclick="spFilterSettings()">Favoriter</button>
+<button class="button" id="cardStyleSettings" onclick="cardStyleSettings()">Utseende</button>
+<button class="button"id="customUrlSettings" onclick= "customUrlSettings()">Egna länkar</button>
 <button class="button">Hjälp</button>
+<button class="button"id="clearAll" onclick= "clearAll()">Återställ</button>
 </div>
 <div class="selectIdpDiv" id="settingsIdpContent" style="display:none">
 </section>
