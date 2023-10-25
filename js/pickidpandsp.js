@@ -1,5 +1,5 @@
 // XXXXXXXXXXXXXXXXX <TODO> XXXXXXXXXXXXXXXXXXXX
-//- Lägg till "är du säker på?" vid klick på återställ
+//- Lägg till "är du säker på?" vid klick på återställ | KLART
 //- Markera/avmarkera alla på filtersidan
 //- Visa vilka tjänster som redan är valda på filtersidan
 //- Om man aktivt valt att avmarkera alla tjänster så blir sidan tom. Behålla så eller inte? Kanske bra om även egna länkar.
@@ -7,6 +7,8 @@
 //- Visa egna länkar i SSO-vyn
 //- Snyggare visning av egna länkar i vyn för egna länkar
 //- Möjlighet att ta bort egen länk
+//- Kontroll av cardstyle på två ställen i koden - gör om till function
+//- Snyggare IdP-val med logga och beskrivande text
 //- Avsnitt "Hjälp"
 //- Parkera portal v2 och se över förbättringar till v3 (ex: GUI, alfabetisk oavsett versaler, egen sortering mm)
 // XXXXXXXXXXXXXXXXX </TODO> XXXXXXXXXXXXXXXXXXXX
@@ -29,7 +31,7 @@ if (localStorage.getItem("idpOrgEntity") !== null) {
 	document.getElementById("selectIdpHeading").innerHTML="Innan du kan använda portalen så måste du välja inloggning";
   }
 
-//kolla om cardStyle är valt annars sätt default full
+//kolla om cardStyle är valt annars sätt default full - - GÖR OM TILL FUNCTION EFTERSOM SAMMA KOD ÄVEN EFTER IDP-VAL
 if (localStorage.getItem("cardStyle") == null) {
 	localStorage.setItem("cardStyle","full");
   }
@@ -100,7 +102,7 @@ if (localStorage.getItem("idpOrgEntity") !== null) {
     document.getElementById("show").innerHTML = "Federationsportalen";
   }
   
-//kolla om cardStyle är valt annars sätt default full
+//kolla om cardStyle är valt annars sätt default full - GÖR OM TILL FUNCTION EFTERSOM SAMMA KOD ÄVEN I INLEDANDE KONTROLL (och inte ligga här)
 if (localStorage.getItem("cardStyle") == null) {
 	localStorage.setItem("cardStyle","full");
   }
@@ -252,11 +254,10 @@ ul.addEventListener('change', event => {
 // XXXXXXXXXXXXXXXXXXXXXXXXX <EGNA LÄNKAR> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 //Kolla om det finns sparade länkar sedan tidigare och läs i så fall in dem på sidan - else - tom array
-
 if (localStorage.getItem("savedUrls") !== null){
 	customUrlArray = JSON.parse(localStorage.getItem("savedUrls"));
-	stringCustomUrl = JSON.stringify(customUrlArray);
-	document.getElementById("showSavedUrls").innerHTML = stringCustomUrl;
+	//stringCustomUrl = JSON.stringify(customUrlArray);
+	showCustUrls();
 }
 else {
 	customUrlArray = [];
@@ -267,9 +268,45 @@ function addCustomUrl(){
 	let customUrlObject = {custName:custName.value, custUrl:custUrl.value};
 	customUrlArray.push(customUrlObject);
 		stringCustomUrl = JSON.stringify(customUrlArray);
-		document.getElementById("showSavedUrls").innerHTML = stringCustomUrl;
 		localStorage.setItem("savedUrls",stringCustomUrl);
+		document.getElementById("showSavedUrls").innerHTML="";
+		showCustUrls();
+		
 }
+
+//Visa de tillagda länkarna på settingssidan
+		function showCustUrls() {
+		let custUrlList = document.getElementById("showSavedUrls") 
+ 
+           for (let x = 0; x < customUrlArray.length; x++) {
+				let custName = customUrlArray[x].custName
+				let custUrl = customUrlArray[x].custUrl
+				          
+			let custUrlLi = document.createElement('li');
+			custUrlLi.innerText = custName;
+			let custUrlP = document.createElement('p');
+			custUrlP.innerHTML = custUrl;
+			//Lägg till knapp för att ta bort länk
+			let custUrlRemBut = document.createElement('button');
+			custUrlRemBut.value = x;
+			custUrlRemBut.innerHTML = "Ta bort";
+			custUrlRemBut.addEventListener('click', remCustUrl);
+				
+            custUrlList.appendChild(custUrlLi);
+			custUrlList.appendChild(custUrlP);
+			custUrlList.appendChild(custUrlRemBut);
+		   }
+		}
+// Ta bort länkt vid klick
+function remCustUrl(){
+	customUrlArray.splice((this.value), 1);
+	stringCustomUrl = JSON.stringify(customUrlArray);
+	localStorage.setItem("savedUrls",stringCustomUrl);
+	document.getElementById("showSavedUrls").innerHTML="";
+	showCustUrls();
+}
+
+			
 // XXXXXXXXXXXXXXXXXXXXXXXXX </EGNA LÄNKAR> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 // XXXXXXXXXXXXXXXXXXXXXXXXX <DIVERSE FUNKTIONER SOM INITIERAS AV ANVÄNDAREN> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -291,6 +328,7 @@ function newIdp() {
   if (x.style.display === "none") {
     x.style.display = "block";
 	document.getElementById("selectIdpHeading").innerHTML="Välj en ny inloggning eller gå tillbaka till portalen";
+	document.getElementById("idpSelectOpt").innerHTML="Byt inloggning";
 	document.getElementById("currentIdp").innerHTML="Nuvarande val är: "+localStorage.getItem("idpOrgName");
 	document.getElementById("backToPortal").style.display="";
 	alert("Du kommer nu att kunna göra om ditt val av organisation, men tänk på att om du redan har loggat in i en tjänst så kommer tjänsten att komma ihåg den inloggningen. Du kan därför behöva stänga webbläsaren och öppna portalen igen.");
@@ -363,9 +401,12 @@ function backToPortal() {
 
 //Rensa localStorage och ladda om dokumentet
 function clearAll() {
-	localStorage.clear();
-	location.reload();
-}
+	
+	if (confirm('Är du säker på att du vill rensa alla inställningar?')) {
+		localStorage.clear();
+		location.reload();
+		}
+		}
 
 //Sökfilter i top-bar
 function searchFilter() {

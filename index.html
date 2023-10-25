@@ -16,7 +16,7 @@
 <h2 id="selectIdpHeading"></h2>
 <p id="currentIdp"></p>
 <select class="button" id="idpSelect" onchange="updateIdp()">
-<option value="" selected>Välj inloggning</option>
+<option id="idpSelectOpt" value="" selected>Välj inloggning</option>
 </select>
 <button class="button" id="backToPortal" onclick="backToPortal()" style="display:none">Tillbaka till portalen</button>
 </div>
@@ -41,9 +41,8 @@
 </div>
 
 <!--CUSTOM URL:S-->
-<div class="selectIdpDiv" id="customUrlDiv" style="display:none">
+<section class="selectIdpDiv" id="customUrlDiv" style="display:none">
 <p>Här blir det egna urlar</p>
-<!--FÖR TESTNING, SKA IN I SCRIPT SEN XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX-->
 <div>
   <label for="custName">Namn i portalen: </label>
   <input type="text" id="custName" name="custName">
@@ -52,11 +51,9 @@
   <input type="button" onclick="return addCustomUrl();" value="Spara min länk">
 </div>
 
-
 <button class="button" type="button" onclick="backToPortal()">Tillbaka till portalen</button>
-<div id="showSavedUrls"></div>
-
-</div>
+<ul class="ulFilter" id="showSavedUrls"></ul>
+</section>
 
 <!--TOP BAR-->
 <div class="flex-header wrap">
