@@ -21,7 +21,7 @@
 <button class="button" id="backToPortal" onclick="backToPortal()" style="display:none">Tillbaka till portalen</button>
 </div>
 
-<!--SETTINGS CARD STYLE-->
+<!--SETTINGS: CARD STYLE-->
 <div class="selectIdpDiv" id="cardStyle" style="display:none">
 <h2>Välj vilket utseende du vill ha på korten i portalen</h2>
 <img src="img/full.png" style="margin:8px;"><img src="img/mini.png" style="margin:8px;">
@@ -33,14 +33,14 @@
 <button class="button" type="button" onclick="backToPortal()">Tillbaka till portalen</button>
 </div>
 
-<!--SETTINGS FILTER SERVICES-->
+<!--SETTINGS: FILTER SERVICES-->
 <div class="selectIdpDiv" id="spFilterDiv" style="display:none">
 <ul class="ulFilter" id="spFilterList"></ul>
 <button class="button" onclick="myPickedServices()">Välj markerade tjänster</button>
 <button class="button" type="button" onclick="backToPortal()">Tillbaka till portalen</button>
 </div>
 
-<!--CUSTOM URL:S-->
+<!--SETTINGS: CUSTOM URL:S-->
 <section class="selectIdpDiv" id="customUrlDiv" style="display:none">
 <p>Här blir det egna urlar</p>
 <div>
@@ -77,6 +77,12 @@
 
 <!--SERVICES SSO SECTION-->
 <section id="spList" class="flex-container wrap"></section>
+
+<!--CUSTOM URLS non-SSO SECTION-->
+<h2 id="custUrlHeading" style = "text-align:center"></h2>
+<section id="custUrlList" class="flex-container wrap">
+
+</section>
 
 </body>
 </html>

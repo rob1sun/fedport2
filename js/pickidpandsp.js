@@ -1,12 +1,13 @@
 // XXXXXXXXXXXXXXXXX <TODO> XXXXXXXXXXXXXXXXXXXX
 //- Lägg till "är du säker på?" vid klick på återställ | KLART
+//- Möjlighet att ta bort egen länk | KLART
 //- Markera/avmarkera alla på filtersidan
 //- Visa vilka tjänster som redan är valda på filtersidan
 //- Om man aktivt valt att avmarkera alla tjänster så blir sidan tom. Behålla så eller inte? Kanske bra om även egna länkar.
 //- Gör en pil eller något i knappen som togglar menyn så man förstår att man öppnar/stänger
 //- Visa egna länkar i SSO-vyn
+//- Ladda om egna länkar i SSO-vyn om man lagt till eller tagit bort en länk
 //- Snyggare visning av egna länkar i vyn för egna länkar
-//- Möjlighet att ta bort egen länk
 //- Kontroll av cardstyle på två ställen i koden - gör om till function
 //- Snyggare IdP-val med logga och beskrivande text
 //- Avsnitt "Hjälp"
@@ -20,7 +21,7 @@ var customUrlArray; //Array för egna länkar
 var stringCustomUrl; // För att läsa in egna länkar i html (radera om annan metod i senare kod)
 
 // XXXXXXXXXXXXXXXXX </GLOBALA VARIABLER> XXXXXXXXXXXXXXXXXXXX
-// XXXXXXXXXXXXXXXXX <KONTROLL AV TIDIGARE SPARADE VÄRDEN I LOCAL STORAGE> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+// XXXXXXXXXXXXXXXXX <INTIERING OCH KONTROLL AV TIDIGARE SPARADE VÄRDEN I LOCAL STORAGE> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 //Kolla om det redan finns en vald IdP sen tidigare
 if (localStorage.getItem("idpOrgEntity") !== null) {
@@ -271,17 +272,19 @@ function addCustomUrl(){
 		localStorage.setItem("savedUrls",stringCustomUrl);
 		document.getElementById("showSavedUrls").innerHTML="";
 		showCustUrls();
+		insertCustUrls();
 		
 }
 
-//Visa de tillagda länkarna på settingssidan
+//Visa de tillagda länkarna på settingssidan !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		function showCustUrls() {
+			
 		let custUrlList = document.getElementById("showSavedUrls") 
  
            for (let x = 0; x < customUrlArray.length; x++) {
 				let custName = customUrlArray[x].custName
 				let custUrl = customUrlArray[x].custUrl
-				          
+						
 			let custUrlLi = document.createElement('li');
 			custUrlLi.innerText = custName;
 			let custUrlP = document.createElement('p');
@@ -304,7 +307,51 @@ function remCustUrl(){
 	localStorage.setItem("savedUrls",stringCustomUrl);
 	document.getElementById("showSavedUrls").innerHTML="";
 	showCustUrls();
+	insertCustUrls();
 }
+//Infoga egna länkar i SSO-vyn
+		
+function insertCustUrls(){
+
+	if ((localStorage.getItem("savedUrls")) === null || (localStorage.getItem("savedUrls")) === "[]"){
+	document.getElementById("custUrlHeading").innerHTML = "";
+	} else {
+		document.getElementById("custUrlHeading").innerHTML = "Egna länkar utan direktinloggning";
+	}
+	
+	document.getElementById("custUrlList").innerHTML = "";
+		
+		let custUrlList = document.getElementById("custUrlList")
+		
+           for (let x = 0; x < customUrlArray.length; x++) {
+				let custName = customUrlArray[x].custName
+				let custUrl = customUrlArray[x].custUrl
+				          
+			
+			const custUrlA = document.createElement("a");
+			custUrlA.className = "flex-"+cardStyling+"item";
+			custUrlA.setAttribute('href', custUrl);
+			custUrlA.target = "_blank";
+			custUrlA.innerHTML = custName;
+			
+			const custUrlP = document.createElement('p');
+			custUrlP.className = "flex-item-description";
+			custUrlP.innerHTML = "Den här länken har du lagt till själv och den har inte direktinloggning.";
+			
+			const custUrlImg = document.createElement('img');
+			custUrlImg.className = "flex-"+cardStyling+"item-img";
+			custUrlImg.setAttribute('src', "img/custurl.png");
+			
+			custUrlList.appendChild(custUrlA);
+			custUrlA.appendChild(custUrlImg);
+			
+			//Utseende på SSO-kort om fyllig stil valts
+			if (localStorage.getItem("cardStyle")=="full"){
+			custUrlA.appendChild(custUrlP);
+			}
+			}
+			}
+
 
 			
 // XXXXXXXXXXXXXXXXXXXXXXXXX </EGNA LÄNKAR> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -428,3 +475,9 @@ function searchFilter() {
 
 // XXXXXXXXXXXXXXXXXXXXXXXXX </DIVERSE FUNKTIONER SOM INITIERAS AV ANVÄNDAREN> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+// XXXXXXXXXXXXXXXXXXXXXXXXX <FUNKTIONER SOM UTFÖRS EFTER ATT DOKUMENTET LADDATS> XXXXXXXXXXXXXXXXXXXXXXXXX
+
+//Append egna länkar i SSO-vyn (om de finns)
+document.getElementById("custUrlList").onload = insertCustUrls();
+
+// XXXXXXXXXXXXXXXXXXXXXXXXX </FUNKTIONER SOM UTFÖRS EFTER ATT DOKUMENTET LADDATS> XXXXXXXXXXXXXXXXXXXXXXXXX
