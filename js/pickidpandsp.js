@@ -147,6 +147,8 @@ else {
 	let result = spData.filter(c => obj.some(s => s.spData_spDisplayName === c.spDisplayName));	  
 
 
+
+
 //Generera innehåll i SSO-kort och...
             for (let x = 0; x < result.length; x++) {
 				let concLink = result[x].spLink + pickedIdp + result[x].spTarget;
@@ -174,8 +176,7 @@ const dFrag = document.createDocumentFragment();
   pOrg.innerHTML = spShortDescription;
   const pDescription = document.createElement('p');
   pDescription.innerHTML = spDescription;
-  pDescription.className = "flex-item-description";
-  
+  pDescription.className = "flex-item-description"; 
 
   dFrag.appendChild(a);
   a.appendChild(img);
@@ -186,6 +187,7 @@ if (localStorage.getItem("cardStyle")=="full"){
   a.appendChild(pOrg);
   a.appendChild(pDescription);
 }
+
 
   document.getElementById('spList').appendChild(dFrag);
 		}}}
@@ -329,7 +331,10 @@ function insertCustUrls(){
 			custUrlA.setAttribute("style","color:black !important; background-color:#E8E8E8 !important");
 			custUrlA.setAttribute('href', custUrl);
 			custUrlA.target = "_blank";
-			custUrlA.innerHTML = custName;
+			
+			const custUrlName = document.createElement("p");
+			custUrlName.className = "flex-"+cardStyling+"item-txt";
+			custUrlName.innerHTML = custName;
 			
 			const custUrlP = document.createElement('p');
 			custUrlP.className = "flex-item-description";
@@ -342,6 +347,7 @@ function insertCustUrls(){
 			
 			custUrlList.appendChild(custUrlA);
 			custUrlA.appendChild(custUrlImg);
+			custUrlA.appendChild(custUrlName);
 			
 			//Utseende på SSO-kort om fyllig stil valts
 			if (localStorage.getItem("cardStyle")=="full"){
@@ -437,10 +443,6 @@ function customUrlSettings() {
 		addMyPickedServices();
 		}
   }
-		
-		
-
-
 
 //Skriv val av visade tjänster till localStorage och tillbaka till huvudsida
   function addMyPickedServices() {
