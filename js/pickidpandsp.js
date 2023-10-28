@@ -1,12 +1,8 @@
 // XXXXXXXXXXXXXXXXX <TODO> XXXXXXXXXXXXXXXXXXXX
-//- Lägg till "är du säker på?" vid klick på återställ | KLART
-//- Möjlighet att ta bort egen länk | KLART
 //- Markera/avmarkera alla på filtersidan
 //- Visa vilka tjänster som redan är valda på filtersidan
 //- Om man aktivt valt att avmarkera alla tjänster så blir sidan tom. Behålla så eller inte? Kanske bra om även egna länkar.
 //- Gör en pil eller något i knappen som togglar menyn så man förstår att man öppnar/stänger
-//- Visa egna länkar i SSO-vyn
-//- Ladda om egna länkar i SSO-vyn om man lagt till eller tagit bort en länk
 //- Snyggare visning av egna länkar i vyn för egna länkar
 //- Kontroll av cardstyle på två ställen i koden - gör om till function
 //- Snyggare IdP-val med logga och beskrivande text
@@ -276,7 +272,7 @@ function addCustomUrl(){
 		
 }
 
-//Visa de tillagda länkarna på settingssidan !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//Visa de tillagda länkarna på settingssidan
 		function showCustUrls() {
 			
 		let custUrlList = document.getElementById("showSavedUrls") 
@@ -316,7 +312,7 @@ function insertCustUrls(){
 	if ((localStorage.getItem("savedUrls")) === null || (localStorage.getItem("savedUrls")) === "[]"){
 	document.getElementById("custUrlHeading").innerHTML = "";
 	} else {
-		document.getElementById("custUrlHeading").innerHTML = "Egna länkar utan direktinloggning";
+		document.getElementById("custUrlHeading").innerHTML = "<hr>"+"<br>"+"Egna länkar utan direktinloggning";
 	}
 	
 	document.getElementById("custUrlList").innerHTML = "";
@@ -330,12 +326,14 @@ function insertCustUrls(){
 			
 			const custUrlA = document.createElement("a");
 			custUrlA.className = "flex-"+cardStyling+"item";
+			custUrlA.setAttribute("style","color:black !important; background-color:#E8E8E8 !important");
 			custUrlA.setAttribute('href', custUrl);
 			custUrlA.target = "_blank";
 			custUrlA.innerHTML = custName;
 			
 			const custUrlP = document.createElement('p');
 			custUrlP.className = "flex-item-description";
+			custUrlP.setAttribute("style","color:black !important");
 			custUrlP.innerHTML = "Den här länken har du lagt till själv och den har inte direktinloggning.";
 			
 			const custUrlImg = document.createElement('img');
@@ -410,6 +408,7 @@ function cardStyleSubmit() {
 function spFilterSettings() {
   var x = document.getElementById("spFilterDiv");
   if (x.style.display === "none") {
+	  selected = [];
     x.style.display = "block";
   } else {
     x.style.display = "none";
@@ -428,8 +427,23 @@ function customUrlSettings() {
   }
 }
 
-//Skriv val av visade tjänster till localStorage och tillbaka till huvudsida
+
   function myPickedServices() {
+	if (selected <1){
+		if (confirm('Du har inte valt några tjänster. Klickar du OK så kommer inga tjänster att visas i portalen (om du lagt till egna länkar så kommer endast dessa att visas i portalen). Vill du fortsätta?')) {
+		addMyPickedServices();
+		}
+	} else {
+		addMyPickedServices();
+		}
+  }
+		
+		
+
+
+
+//Skriv val av visade tjänster till localStorage och tillbaka till huvudsida
+  function addMyPickedServices() {
   let string = JSON.stringify(selected);
   localStorage.setItem("pickedServices",string);
   document.getElementById("spFilterDiv").style.display="none";
