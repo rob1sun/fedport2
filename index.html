@@ -42,17 +42,19 @@
 
 <!--SETTINGS: CUSTOM URL:S-->
 <section class="selectIdpDiv" id="customUrlDiv" style="display:none">
-<p>Här blir det egna urlar</p>
+<h2>Mina egna länkar</h2>
 <div>
   <label for="custName">Namn i portalen: </label>
-  <input type="text" id="custName" name="custName">
+  <input type="text" id="custName" name="custName"><br>
   <label for="custUrl">Adress till sidan: </label>
-  <input type="text" id="custUrl" name="custUrl">
-  <input type="button" onclick="return addCustomUrl();" value="Spara min länk">
+  <input type="text" id="custUrl" name="custUrl"><br><br>
+  <input class="button" type="button" onclick="return addCustomUrl();" value="Spara min länk">
+  <button class="button" type="button" onclick="backToPortal()">Tillbaka till portalen</button>
 </div>
-
-<button class="button" type="button" onclick="backToPortal()">Tillbaka till portalen</button>
-<ul class="ulFilter" id="showSavedUrls"></ul>
+<br>
+<table><th>Sparade länkar</th></table>
+<table id="showSavedUrls"></table>
+<br>
 </section>
 
 <!--TOP BAR-->
@@ -79,10 +81,8 @@
 <section id="spList" class="flex-container wrap"></section>
 
 <!--CUSTOM URLS non-SSO SECTION-->
-<h3 id="custUrlHeading" style = "text-align:center"></h3>
-<section id="custUrlList" class="flex-container wrap">
-
-</section>
+<h3  id="custUrlHeading" style = "text-align:center"></h3>
+<section id="custUrlList" class="flex-container wrap"></section>
 
 </body>
 </html>

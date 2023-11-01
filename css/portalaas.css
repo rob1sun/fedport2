@@ -192,5 +192,16 @@ margin-left: 5px;
 }
 .inp{
 margin-left: 5px;
-
 }
+/* CSS FÖR SETTINGS EGNA LÄNKAR */
+table {
+	width: 50%;
+	min-width:320px;
+	margin-left: 15px;
+}
+th, td {
+  border: 1px solid;
+  padding: 5px;
+}
+
+

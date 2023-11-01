@@ -1,12 +1,11 @@
 // XXXXXXXXXXXXXXXXX <TODO> XXXXXXXXXXXXXXXXXXXX
 //- Markera/avmarkera alla på filtersidan
 //- Visa vilka tjänster som redan är valda på filtersidan
-//- Om man aktivt valt att avmarkera alla tjänster så blir sidan tom. Behålla så eller inte? Kanske bra om även egna länkar.
 //- Gör en pil eller något i knappen som togglar menyn så man förstår att man öppnar/stänger
-//- Snyggare visning av egna länkar i vyn för egna länkar
 //- Kontroll av cardstyle på två ställen i koden - gör om till function
 //- Snyggare IdP-val med logga och beskrivande text
 //- Avsnitt "Hjälp"
+//- Lägg till footer med avsnitt "Om" med mera
 //- Parkera portal v2 och se över förbättringar till v3 (ex: GUI, alfabetisk oavsett versaler, egen sortering mm)
 // XXXXXXXXXXXXXXXXX </TODO> XXXXXXXXXXXXXXXXXXXX
 
@@ -147,8 +146,6 @@ else {
 	let result = spData.filter(c => obj.some(s => s.spData_spDisplayName === c.spDisplayName));	  
 
 
-
-
 //Generera innehåll i SSO-kort och...
             for (let x = 0; x < result.length; x++) {
 				let concLink = result[x].spLink + pickedIdp + result[x].spTarget;
@@ -255,7 +252,6 @@ ul.addEventListener('change', event => {
 //Kolla om det finns sparade länkar sedan tidigare och läs i så fall in dem på sidan - else - tom array
 if (localStorage.getItem("savedUrls") !== null){
 	customUrlArray = JSON.parse(localStorage.getItem("savedUrls"));
-	//stringCustomUrl = JSON.stringify(customUrlArray);
 	showCustUrls();
 }
 else {
@@ -274,28 +270,38 @@ function addCustomUrl(){
 		
 }
 
-//Visa de tillagda länkarna på settingssidan
+//Visa de tillagda länkarna på settingssidan - TABELLRUBRIKER I HTML FÖRSVINNER. LÄGG IN I JS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		function showCustUrls() {
-			
+		
 		let custUrlList = document.getElementById("showSavedUrls") 
  
            for (let x = 0; x < customUrlArray.length; x++) {
 				let custName = customUrlArray[x].custName
 				let custUrl = customUrlArray[x].custUrl
 						
-			let custUrlLi = document.createElement('li');
+			let custUrlRow = document.createElement('tr');
+			
+			let custUrlLi = document.createElement('td');
 			custUrlLi.innerText = custName;
-			let custUrlP = document.createElement('p');
+			let custUrlP = document.createElement('td');
 			custUrlP.innerHTML = custUrl;
+			
 			//Lägg till knapp för att ta bort länk
 			let custUrlRemBut = document.createElement('button');
 			custUrlRemBut.value = x;
 			custUrlRemBut.innerHTML = "Ta bort";
 			custUrlRemBut.addEventListener('click', remCustUrl);
+			
+			//Lägg till cell i tabell för knapp
+			let custUrlButtonRow = document.createElement('td');
 				
-            custUrlList.appendChild(custUrlLi);
-			custUrlList.appendChild(custUrlP);
-			custUrlList.appendChild(custUrlRemBut);
+            
+			
+			custUrlList.appendChild(custUrlRow);
+			custUrlRow.appendChild(custUrlLi);
+			custUrlRow.appendChild(custUrlP);
+			custUrlRow.appendChild(custUrlButtonRow);
+			custUrlButtonRow.appendChild(custUrlRemBut);
 		   }
 		}
 // Ta bort länkt vid klick
@@ -327,13 +333,13 @@ function insertCustUrls(){
 				          
 			
 			const custUrlA = document.createElement("a");
-			custUrlA.className = "flex-"+cardStyling+"item";
+			custUrlA.className = "flex-miniitem";
 			custUrlA.setAttribute("style","color:black !important; background-color:#E8E8E8 !important");
 			custUrlA.setAttribute('href', custUrl);
 			custUrlA.target = "_blank";
 			
 			const custUrlName = document.createElement("p");
-			custUrlName.className = "flex-"+cardStyling+"item-txt";
+			custUrlName.className = "flex-miniitem-txt";
 			custUrlName.innerHTML = custName;
 			
 			const custUrlP = document.createElement('p');
@@ -342,7 +348,7 @@ function insertCustUrls(){
 			custUrlP.innerHTML = "Den här länken har du lagt till själv och den har inte direktinloggning.";
 			
 			const custUrlImg = document.createElement('img');
-			custUrlImg.className = "flex-"+cardStyling+"item-img";
+			custUrlImg.className = "flex-miniitem-img";
 			custUrlImg.setAttribute('src', "img/custurl.png");
 			
 			custUrlList.appendChild(custUrlA);
@@ -350,9 +356,9 @@ function insertCustUrls(){
 			custUrlA.appendChild(custUrlName);
 			
 			//Utseende på SSO-kort om fyllig stil valts
-			if (localStorage.getItem("cardStyle")=="full"){
+			/*if (localStorage.getItem("cardStyle")=="full"){
 			custUrlA.appendChild(custUrlP);
-			}
+			}*/
 			}
 			}
 
