@@ -1,492 +1,560 @@
-// XXXXXXXXXXXXXXXXX <TODO> XXXXXXXXXXXXXXXXXXXX
-//- Markera/avmarkera alla på filtersidan
-//- Visa vilka tjänster som redan är valda på filtersidan
-//- Gör en pil eller något i knappen som togglar menyn så man förstår att man öppnar/stänger
-//- Kontroll av cardstyle på två ställen i koden - gör om till function
-//- Snyggare IdP-val med logga och beskrivande text
-//- Avsnitt "Hjälp"
-//- Lägg till footer med avsnitt "Om" med mera
-//- Parkera portal v2 och se över förbättringar till v3 (ex: GUI, alfabetisk oavsett versaler, egen sortering mm)
-// XXXXXXXXXXXXXXXXX </TODO> XXXXXXXXXXXXXXXXXXXX
+// Refactored PickIdpAndSp script
 
-// XXXXXXXXXXXXXXXXX <GLOBALA VARIABLER> XXXXXXXXXXXXXXXXXXXX
-var pickedIdp; //vald IdP
-var cardStyling; //Utseende på SSO-korten
-var customUrlArray; //Array för egna länkar
-var stringCustomUrl; // För att läsa in egna länkar i html (radera om annan metod i senare kod)
+// Configuration
+const CONFIG = {
+    urls: {
+        idp: 'https://fedfeeds.robertsundin.se/idp/json/multiidp.json',
+        sp: 'https://fedfeeds.robertsundin.se/sp/json/splink.json'
+    },
+    selectors: {
+        idpSelectDiv: 'idpSelectDiv',
+        spList: 'spList',
+        selectIdpHeading: 'selectIdpHeading',
+        idpSelect: 'idpSelect',
+        idpSelectOpt: 'idpSelectOpt',
+        currentIdp: 'currentIdp',
+        backToPortal: '.js-back-to-portal',
+        showHeader: 'show',
+        spFilterList: 'spFilterList',
+        spFilterDiv: 'spFilterDiv',
+        cardStyleDiv: 'cardStyle',
+        customUrlDiv: 'customUrlDiv',
+        settingsDiv: 'settings',
+        searchInput: 'searchInput',
+        showSavedUrls: 'showSavedUrls',
+        custUrlHeading: 'custUrlHeading',
+        custUrlList: 'custUrlList',
+        custNameInput: 'custName',
+        custUrlInput: 'custUrl',
+        btnCardStyleSubmit: 'btnCardStyleSubmit',
+        btnMyPickedServices: 'btnMyPickedServices',
+        btnAddCustomUrl: 'btnAddCustomUrl',
+        btnSettings: 'btnSettings',
+        newIdp: 'newIdp',
+        btnSpFilterSettings: 'btnSpFilterSettings',
+        cardStyleSettings: 'cardStyleSettings',
+        customUrlSettings: 'customUrlSettings',
+        clearAll: 'clearAll'
+    },
+    storageKeys: {
+        idpOrgEntity: 'idpOrgEntity',
+        idpOrgName: 'idpOrgName',
+        cardStyle: 'cardStyle',
+        pickedServices: 'pickedServices',
+        savedUrls: 'savedUrls'
+    }
+};
 
-// XXXXXXXXXXXXXXXXX </GLOBALA VARIABLER> XXXXXXXXXXXXXXXXXXXX
-// XXXXXXXXXXXXXXXXX <INTIERING OCH KONTROLL AV TIDIGARE SPARADE VÄRDEN I LOCAL STORAGE> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+// State
+let state = {
+    pickedIdp: null,
+    cardStyling: 'full',
+    customUrlArray: [],
+    spFilterSelected: []
+};
 
-//Kolla om det redan finns en vald IdP sen tidigare
-if (localStorage.getItem("idpOrgEntity") !== null) {
-	document.getElementById("idpSelectDiv").style.display = "none";
-  } else {
-    document.getElementById("spList").style.display = "none";
-	document.getElementById("idpSelectDiv").style.display = "block";
-	document.getElementById("selectIdpHeading").innerHTML="Innan du kan använda portalen så måste du välja inloggning";
-  }
+// Initialize on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    init();
+});
 
-//kolla om cardStyle är valt annars sätt default full - - GÖR OM TILL FUNCTION EFTERSOM SAMMA KOD ÄVEN EFTER IDP-VAL
-if (localStorage.getItem("cardStyle") == null) {
-	localStorage.setItem("cardStyle","full");
-  }
-//Sätt variabel som används för att välja css för utseende på SSO-korten
-localStorage.getItem("cardStyle");
+async function init() {
+    loadState();
+    setupEventListeners();
+    checkInitialView();
+    updateHeader();
 
-// XXXXXXXXXXXXXXXXX </KONTROLL AV TIDIGARE SPARADE VÄRDEN I LOCAL STORAGE> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
-// XXXXXXXXXXXXXXXXXX <ANVÄNDARORGANISATION> XXXXXXXXXXXXXXXXXXXXXXXX
+    try {
+        await loadIdpData();
+        await loadSpData();
+    } catch (error) {
+        console.error('Error loading data:', error);
+    }
 
-//Läs in IdP-array från json och...
-		fetch('https://fedfeeds.robertsundin.se/idp/json/multiidp.json')
-            .then(function (idpResponse) {
-                return idpResponse.json();
-            })
-            .then(function (idpData) {
-                appendIdpData(idpData);
-            })
-            .catch(function (err) {
-                console.log('error: ' + err);
-            });
-
-//Append json och...
-        function appendIdpData(idpData) {
-			
-            for (let y = 0; y < idpData.length; y++) {
-				let idpDisplayName = idpData[y].idpDisplayName
-				let idpEntityId = idpData[y].idpEntityId
-				let idpImg = idpData[y].idpImg
-
-//Skapa lista för IdP-val och infoga på sida
-const dFragIdp = document.createDocumentFragment();
-const opt = document.createElement('option');
-
-  opt.textContent = idpDisplayName;
-  opt.value = idpEntityId;
-  
-  dFragIdp.appendChild(opt);
-  
-  document.getElementById("idpSelect").appendChild(dFragIdp);
-		}}
-  
-//När användaren valt - skriv vald entityID till localStore och...
- function updateIdp() {
-  let userPickedIdp = document.getElementById("idpSelect").value;
-  localStorage.setItem("idpOrgEntity",userPickedIdp);
-  
-// sätt text från selected option som variabel och ladda om dokumentet
-const pickedIdpDisplay = (el) => {
-  if (el.selectedIndex === -1) {
-    return null;
-  }
-  return el.options[el.selectedIndex].text;
-}
-const select = document.querySelector('select')
-const text = pickedIdpDisplay(select);
-localStorage.setItem("idpOrgName",text);
-  
-  location.reload();
-
- }
-// Uppdatera global variabel för vald IdP
-  pickedIdp = localStorage.getItem("idpOrgEntity");
-
-// Kolla om IdP finns i localStore och infoga text för vald option i dokumentet - annars default text
-if (localStorage.getItem("idpOrgEntity") !== null) {
-	document.getElementById("show").innerHTML = localStorage.getItem("idpOrgName");
-  } else {
-    document.getElementById("show").innerHTML = "Federationsportalen";
-  }
-  
-//kolla om cardStyle är valt annars sätt default full - GÖR OM TILL FUNCTION EFTERSOM SAMMA KOD ÄVEN I INLEDANDE KONTROLL (och inte ligga här)
-if (localStorage.getItem("cardStyle") == null) {
-	localStorage.setItem("cardStyle","full");
-  }
-//Sätt variabel som används för att välja css för utseende på korten
-cardStyling=localStorage.getItem("cardStyle");
-
-// XXXXXXXXXXXXXXXXXXXXXXXXX </ANVÄNDARORGANISATION> XXXXXXXXXXXXXXXXXXXXXXXX
-
-// XXXXXXXXXXXXXXXXXXXXXXXXX <TJÄNSTER> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-//Läs in SP-array från JSON
-		fetch('https://fedfeeds.robertsundin.se/sp/json/splink.json')
-            .then(function (spResponse) {
-                return spResponse.json();
-            })
-            .then(function (spData) {
-                appendSpData(spData);
-				appendSpDataFilter(spData);//för sidan med val av visade tjänster
-            })
-            .catch(function (err) {
-                console.log('error: ' + err);
-            });
-
-//Append json och...
-        function appendSpData(spData) {
-
-//Hämta valda tjänster ur localStorage. Om null fyll array (inte localStorage) med alla spDisplayName och...
-let spFilter= [];
-
-if (localStorage.getItem("pickedServices") !== null){
-spFilter = JSON.parse(localStorage.getItem("pickedServices"))
-} 
-else {
-
-           for (let x = 0; x < spData.length; x++) {
-				fullServices = spData[x].spDisplayName;
-				spFilter.push(fullServices); 
-}
+    // Load custom URLs after everything else
+    loadCustomUrls();
 }
 
-//Matcha SP-feed mot array med valda SP och...
- for (let y = 0; y < spFilter.length; y++) {
-	let obj = [{"spData_spDisplayName": spFilter[y]}];
-			
-	let result = spData.filter(c => obj.some(s => s.spData_spDisplayName === c.spDisplayName));	  
+function loadState() {
+    state.pickedIdp = localStorage.getItem(CONFIG.storageKeys.idpOrgEntity);
+    state.cardStyling = getCardStyle(); // Uses the helper function
 
+    const savedUrls = localStorage.getItem(CONFIG.storageKeys.savedUrls);
+    state.customUrlArray = savedUrls ? JSON.parse(savedUrls) : [];
 
-//Generera innehåll i SSO-kort och...
-            for (let x = 0; x < result.length; x++) {
-				let concLink = result[x].spLink + pickedIdp + result[x].spTarget;
-				spDisplayName = result[x].spDisplayName;
-				let spImg = result[x].spImg;
-				let spShortDescription = result[x].shortDescription
-				let spDescription = result[x].description
-
-				
-//Skapa lista med SSO-kort och infoga på sida
-const dFrag = document.createDocumentFragment();
-
-  const a = document.createElement('a');
-  a.className = "flex-"+cardStyling+"item";
-  a.setAttribute('href', concLink);
-  a.target = "_blank";
-  const img = document.createElement('img');
-  img.className = "flex-"+cardStyling+"item-img";
-  img.setAttribute('src', spImg);
-  const p = document.createElement('p');
-  p.className = "flex-"+cardStyling+"item-txt";
-  p.innerHTML = spDisplayName;
-  const pOrg = document.createElement('p');
-  pOrg.className = "flex-item-org";
-  pOrg.innerHTML = spShortDescription;
-  const pDescription = document.createElement('p');
-  pDescription.innerHTML = spDescription;
-  pDescription.className = "flex-item-description"; 
-
-  dFrag.appendChild(a);
-  a.appendChild(img);
-  a.appendChild(p);
-  
-//Utseende på SSO-kort om fyllig stil valts
-if (localStorage.getItem("cardStyle")=="full"){
-  a.appendChild(pOrg);
-  a.appendChild(pDescription);
+    const pickedServices = localStorage.getItem(CONFIG.storageKeys.pickedServices);
+    state.spFilterSelected = pickedServices ? JSON.parse(pickedServices) : [];
 }
 
+function setupEventListeners() {
+    // IDP Select Change
+    const idpSelect = document.getElementById(CONFIG.selectors.idpSelect);
+    if (idpSelect) {
+        idpSelect.addEventListener('change', updateIdp);
+    }
 
-  document.getElementById('spList').appendChild(dFrag);
-		}}}
-// XXXXXXXXXXXXXXXXXXXXXXXXX </TJÄNSTER> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // Back to Portal Buttons
+    const backButtons = document.querySelectorAll(CONFIG.selectors.backToPortal);
+    backButtons.forEach(btn => {
+        btn.addEventListener('click', backToPortal);
+    });
 
-// XXXXXXXXXXXXXXXXXXXXXXXXX <VAL AV VISADE TJÄNSTER> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // Card Style Submit
+    const btnCardStyleSubmit = document.getElementById(CONFIG.selectors.btnCardStyleSubmit);
+    if (btnCardStyleSubmit) {
+        btnCardStyleSubmit.addEventListener('click', cardStyleSubmit);
+    }
 
-//Generera innehåll i lista med tjänster och...			
-			function appendSpDataFilter(spData) {
+    // My Picked Services Submit
+    const btnMyPickedServices = document.getElementById(CONFIG.selectors.btnMyPickedServices);
+    if (btnMyPickedServices) {
+        btnMyPickedServices.addEventListener('click', myPickedServices);
+    }
 
-            for (let x = 0; x < spData.length; x++) {
-				let concLink = spData[x].spLink + pickedIdp + spData[x].spTarget;
-				let spDisplayName = spData[x].spDisplayName
-				let spImg = spData[x].spImg
-				let spShortDescription = spData[x].shortDescription
-				let spDescription = spData[x].description
- 
- //Skapa lista för val av tjänster och infoga på sida
-const dFragFilter = document.createDocumentFragment();
-				
-  const liFilter = document.createElement('li');
-  liFilter.className = "li";
-  
-  const imgFilter = document.createElement('img');
-  imgFilter.className = "img";
-  imgFilter.setAttribute('src', spImg);
-  
-  const inpFilter = document.createElement('input');
-  inpFilter.setAttribute('class', "inp");
-  inpFilter.setAttribute('type', "checkbox");
-  inpFilter.setAttribute('id', spDisplayName);
-  inpFilter.setAttribute('name', spDisplayName);
-  inpFilter.setAttribute('value', spDisplayName);
-  
-  const labelFilter = document.createElement('label');
-  labelFilter.className = "label";
-  labelFilter.setAttribute('for', spDisplayName); //KOLLA OM DENNA BEHÖVS
-  labelFilter.innerHTML = spDisplayName;
-  
-  dFragFilter.appendChild(liFilter);
-  liFilter.appendChild(inpFilter);
-  liFilter.appendChild(imgFilter);
-  liFilter.appendChild(labelFilter);
-  
-document.getElementById('spFilterList').appendChild(dFragFilter);
+    // Add Custom URL
+    const btnAddCustomUrl = document.getElementById(CONFIG.selectors.btnAddCustomUrl);
+    if (btnAddCustomUrl) {
+        btnAddCustomUrl.addEventListener('click', addCustomUrl);
+    }
 
-}}
+    // Search Input
+    const searchInput = document.getElementById(CONFIG.selectors.searchInput);
+    if (searchInput) {
+        searchInput.addEventListener('keyup', searchFilter);
+    }
 
-//Hämta värden i filterlista och skriv till localStorage
-document.querySelectorAll('input[type="checkbox"]:checked')
+    // Settings Toggle
+    const btnSettings = document.getElementById(CONFIG.selectors.btnSettings);
+    if (btnSettings) {
+        btnSettings.addEventListener('click', toggleSettings);
+    }
 
-const ul = document.querySelector('ul')
-let selected = [];
+    // New IDP Button
+    const btnNewIdp = document.getElementById(CONFIG.selectors.newIdp);
+    if (btnNewIdp) {
+        btnNewIdp.addEventListener('click', showNewIdpSelection);
+    }
 
-ul.addEventListener('change', event => {
-  if (event.target.type === 'checkbox') {
-    const checked = document.querySelectorAll('input[type="checkbox"]:checked')
-    selected = Array.from(checked).map(x => x.value)
-	}
-})
+    // SP Filter Settings (Favorites)
+    const btnSpFilterSettings = document.getElementById(CONFIG.selectors.btnSpFilterSettings);
+    if (btnSpFilterSettings) {
+        btnSpFilterSettings.addEventListener('click', showSpFilterSettings);
+    }
 
-// XXXXXXXXXXXXXXXXXXXXXXXXX </VAL AV VISADE TJÄNSTER> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
-// XXXXXXXXXXXXXXXXXXXXXXXXX <EGNA LÄNKAR> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    // Card Style Settings
+    const btnCardStyleSettings = document.getElementById(CONFIG.selectors.cardStyleSettings);
+    if (btnCardStyleSettings) {
+        btnCardStyleSettings.addEventListener('click', showCardStyleSettings);
+    }
 
-//Kolla om det finns sparade länkar sedan tidigare och läs i så fall in dem på sidan - else - tom array
-if (localStorage.getItem("savedUrls") !== null){
-	customUrlArray = JSON.parse(localStorage.getItem("savedUrls"));
-	showCustUrls();
-}
-else {
-	customUrlArray = [];
-}
+    // Custom URL Settings
+    const btnCustomUrlSettings = document.getElementById(CONFIG.selectors.customUrlSettings);
+    if (btnCustomUrlSettings) {
+        btnCustomUrlSettings.addEventListener('click', showCustomUrlSettings);
+    }
 
-//Lägg till ny egen länk
-function addCustomUrl(){
-	let customUrlObject = {custName:custName.value, custUrl:custUrl.value};
-	customUrlArray.push(customUrlObject);
-		stringCustomUrl = JSON.stringify(customUrlArray);
-		localStorage.setItem("savedUrls",stringCustomUrl);
-		document.getElementById("showSavedUrls").innerHTML="";
-		showCustUrls();
-		insertCustUrls();
-		
+    // Clear All
+    const btnClearAll = document.getElementById(CONFIG.selectors.clearAll);
+    if (btnClearAll) {
+        btnClearAll.addEventListener('click', clearAllSettings);
+    }
+
+    // SP Filter List Change (Delegation)
+    const spFilterList = document.getElementById(CONFIG.selectors.spFilterList);
+    if (spFilterList) {
+        spFilterList.addEventListener('change', handleSpFilterChange);
+    }
 }
 
-//Visa de tillagda länkarna på settingssidan - TABELLRUBRIKER I HTML FÖRSVINNER. LÄGG IN I JS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		function showCustUrls() {
-		
-		let custUrlList = document.getElementById("showSavedUrls") 
- 
-           for (let x = 0; x < customUrlArray.length; x++) {
-				let custName = customUrlArray[x].custName
-				let custUrl = customUrlArray[x].custUrl
-						
-			let custUrlRow = document.createElement('tr');
-			
-			let custUrlLi = document.createElement('td');
-			custUrlLi.innerText = custName;
-			let custUrlP = document.createElement('td');
-			custUrlP.innerHTML = custUrl;
-			
-			//Lägg till knapp för att ta bort länk
-			let custUrlRemBut = document.createElement('button');
-			custUrlRemBut.value = x;
-			custUrlRemBut.innerHTML = "Ta bort";
-			custUrlRemBut.addEventListener('click', remCustUrl);
-			
-			//Lägg till cell i tabell för knapp
-			let custUrlButtonRow = document.createElement('td');
-				
-            
-			
-			custUrlList.appendChild(custUrlRow);
-			custUrlRow.appendChild(custUrlLi);
-			custUrlRow.appendChild(custUrlP);
-			custUrlRow.appendChild(custUrlButtonRow);
-			custUrlButtonRow.appendChild(custUrlRemBut);
-		   }
-		}
-// Ta bort länkt vid klick
-function remCustUrl(){
-	customUrlArray.splice((this.value), 1);
-	stringCustomUrl = JSON.stringify(customUrlArray);
-	localStorage.setItem("savedUrls",stringCustomUrl);
-	document.getElementById("showSavedUrls").innerHTML="";
-	showCustUrls();
-	insertCustUrls();
-}
-//Infoga egna länkar i SSO-vyn
-		
-function insertCustUrls(){
-
-	if ((localStorage.getItem("savedUrls")) === null || (localStorage.getItem("savedUrls")) === "[]"){
-	document.getElementById("custUrlHeading").innerHTML = "";
-	} else {
-		document.getElementById("custUrlHeading").innerHTML = "<hr>"+"<br>"+"Egna länkar utan direktinloggning";
-	}
-	
-	document.getElementById("custUrlList").innerHTML = "";
-		
-		let custUrlList = document.getElementById("custUrlList")
-		
-           for (let x = 0; x < customUrlArray.length; x++) {
-				let custName = customUrlArray[x].custName
-				let custUrl = customUrlArray[x].custUrl
-				          
-			
-			const custUrlA = document.createElement("a");
-			custUrlA.className = "flex-miniitem";
-			custUrlA.setAttribute("style","color:black !important; background-color:#E8E8E8 !important");
-			custUrlA.setAttribute('href', custUrl);
-			custUrlA.target = "_blank";
-			
-			const custUrlName = document.createElement("p");
-			custUrlName.className = "flex-miniitem-txt";
-			custUrlName.innerHTML = custName;
-			
-			const custUrlP = document.createElement('p');
-			custUrlP.className = "flex-item-description";
-			custUrlP.setAttribute("style","color:black !important");
-			custUrlP.innerHTML = "Den här länken har du lagt till själv och den har inte direktinloggning.";
-			
-			const custUrlImg = document.createElement('img');
-			custUrlImg.className = "flex-miniitem-img";
-			custUrlImg.setAttribute('src', "img/custurl.png");
-			
-			custUrlList.appendChild(custUrlA);
-			custUrlA.appendChild(custUrlImg);
-			custUrlA.appendChild(custUrlName);
-			
-			//Utseende på SSO-kort om fyllig stil valts
-			/*if (localStorage.getItem("cardStyle")=="full"){
-			custUrlA.appendChild(custUrlP);
-			}*/
-			}
-			}
-
-
-			
-// XXXXXXXXXXXXXXXXXXXXXXXXX </EGNA LÄNKAR> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-// XXXXXXXXXXXXXXXXXXXXXXXXX <DIVERSE FUNKTIONER SOM INITIERAS AV ANVÄNDAREN> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-//Visa och dölj inställningar - toggla knappen
-function settings() {
-  var x = document.getElementById("settings");
-  if (x.style.display === "none") {
-    x.style.display = "flex";
-  } else {
-    x.style.display = "none";
-	document.getElementById("idpSelectDiv").style.display="none";
-  }
+// Helper: Get Card Style (Addresses TODO)
+function getCardStyle() {
+    let style = localStorage.getItem(CONFIG.storageKeys.cardStyle);
+    if (!style) {
+        style = 'full';
+        localStorage.setItem(CONFIG.storageKeys.cardStyle, style);
+    }
+    return style;
 }
 
-// Visa IdP-val för att kunna välja ny IdP
-function newIdp() {
-  var x = document.getElementById("idpSelectDiv");
-  if (x.style.display === "none") {
-    x.style.display = "block";
-	document.getElementById("selectIdpHeading").innerHTML="Välj en ny inloggning eller gå tillbaka till portalen";
-	document.getElementById("idpSelectOpt").innerHTML="Byt inloggning";
-	document.getElementById("currentIdp").innerHTML="Nuvarande val är: "+localStorage.getItem("idpOrgName");
-	document.getElementById("backToPortal").style.display="";
-	alert("Du kommer nu att kunna göra om ditt val av organisation, men tänk på att om du redan har loggat in i en tjänst så kommer tjänsten att komma ihåg den inloggningen. Du kan därför behöva stänga webbläsaren och öppna portalen igen.");
-  } else {
-    x.style.display = "none";
-	
-  }
+function checkInitialView() {
+    const idpSelectDiv = document.getElementById(CONFIG.selectors.idpSelectDiv);
+    const spList = document.getElementById(CONFIG.selectors.spList);
+    const selectIdpHeading = document.getElementById(CONFIG.selectors.selectIdpHeading);
+
+    if (state.pickedIdp) {
+        if (idpSelectDiv) idpSelectDiv.style.display = 'none';
+    } else {
+        if (spList) spList.style.display = 'none';
+        if (idpSelectDiv) idpSelectDiv.style.display = 'block';
+        if (selectIdpHeading) selectIdpHeading.innerHTML = "Innan du kan använda portalen så måste du välja inloggning";
+    }
 }
 
-//Visa card style settings
-function cardStyleSettings() {
-  var x = document.getElementById("cardStyle");
-  if (x.style.display === "none") {
-    x.style.display = "block";
-  } else {
-    x.style.display = "none";
-	
-  }
+function updateHeader() {
+    const showHeader = document.getElementById(CONFIG.selectors.showHeader);
+    const idpName = localStorage.getItem(CONFIG.storageKeys.idpOrgName);
+    if (showHeader) {
+        showHeader.innerHTML = idpName || "Federationsportalen";
+    }
 }
 
-//Skriv vald card style till local storage
-function cardStyleSubmit() {
-    var ele = document.getElementsByName('cardStyle');
-    for (i = 0; i < ele.length; i++) {
-    if (ele[i].checked)
-        localStorage.setItem("cardStyle", ele[i].value);
-	    location.reload();
-            }
+async function loadIdpData() {
+    const response = await fetch(CONFIG.urls.idp);
+    const data = await response.json();
+    appendIdpData(data);
+}
+
+function appendIdpData(idpData) {
+    const idpSelect = document.getElementById(CONFIG.selectors.idpSelect);
+    if (!idpSelect) return;
+
+    const dFragIdp = document.createDocumentFragment();
+
+    idpData.forEach(idp => {
+        const opt = document.createElement('option');
+        opt.textContent = idp.idpDisplayName;
+        opt.value = idp.idpEntityId;
+        dFragIdp.appendChild(opt);
+    });
+
+    idpSelect.appendChild(dFragIdp);
+}
+
+function updateIdp() {
+    const idpSelect = document.getElementById(CONFIG.selectors.idpSelect);
+    const userPickedIdp = idpSelect.value;
+
+    if (!userPickedIdp) return;
+
+    localStorage.setItem(CONFIG.storageKeys.idpOrgEntity, userPickedIdp);
+
+    const selectedText = idpSelect.options[idpSelect.selectedIndex].text;
+    localStorage.setItem(CONFIG.storageKeys.idpOrgName, selectedText);
+
+    location.reload();
+}
+
+async function loadSpData() {
+    const response = await fetch(CONFIG.urls.sp);
+    const data = await response.json();
+    appendSpData(data);
+    appendSpDataFilter(data);
+}
+
+function appendSpData(spData) {
+    const spList = document.getElementById(CONFIG.selectors.spList);
+    if (!spList) return;
+
+    let spFilter = [];
+    const pickedServices = localStorage.getItem(CONFIG.storageKeys.pickedServices);
+
+    if (pickedServices) {
+        spFilter = JSON.parse(pickedServices);
+    } else {
+        spFilter = spData.map(sp => sp.spDisplayName);
+    }
+
+    // Filter spData based on spFilter
+    const result = spData.filter(sp => spFilter.includes(sp.spDisplayName));
+
+    const dFrag = document.createDocumentFragment();
+
+    result.forEach(sp => {
+        const concLink = sp.spLink + (state.pickedIdp || '') + sp.spTarget;
+
+        const a = document.createElement('a');
+        a.className = "flex-" + state.cardStyling + "item";
+        a.setAttribute('href', concLink);
+        a.target = "_blank";
+
+        const img = document.createElement('img');
+        img.className = "flex-" + state.cardStyling + "item-img";
+        img.setAttribute('src', sp.spImg);
+
+        const p = document.createElement('p');
+        p.className = "flex-" + state.cardStyling + "item-txt";
+        p.innerHTML = sp.spDisplayName;
+
+        a.appendChild(img);
+        a.appendChild(p);
+
+        if (state.cardStyling === 'full') {
+            const pOrg = document.createElement('p');
+            pOrg.className = "flex-item-org";
+            pOrg.innerHTML = sp.shortDescription;
+
+            const pDescription = document.createElement('p');
+            pDescription.innerHTML = sp.description;
+            pDescription.className = "flex-item-description";
+
+            a.appendChild(pOrg);
+            a.appendChild(pDescription);
         }
 
-//Visa val av visade tjänster
-function spFilterSettings() {
-  var x = document.getElementById("spFilterDiv");
-  if (x.style.display === "none") {
-	  selected = [];
-    x.style.display = "block";
-  } else {
-    x.style.display = "none";
-	
-  }
+        dFrag.appendChild(a);
+    });
+
+    spList.appendChild(dFrag);
 }
 
-//Visa sida för att lägga till egna URL
-function customUrlSettings() {
-  var x = document.getElementById("customUrlDiv");
-  if (x.style.display === "none") {
-    x.style.display = "block";
-  } else {
-    x.style.display = "none";
-	
-  }
+function appendSpDataFilter(spData) {
+    const spFilterList = document.getElementById(CONFIG.selectors.spFilterList);
+    if (!spFilterList) return;
+
+    const dFragFilter = document.createDocumentFragment();
+
+    spData.forEach(sp => {
+        const liFilter = document.createElement('li');
+        liFilter.className = "li";
+
+        const imgFilter = document.createElement('img');
+        imgFilter.className = "img";
+        imgFilter.setAttribute('src', sp.spImg);
+
+        const inpFilter = document.createElement('input');
+        inpFilter.className = "inp";
+        inpFilter.type = "checkbox";
+        inpFilter.id = sp.spDisplayName;
+        inpFilter.name = sp.spDisplayName;
+        inpFilter.value = sp.spDisplayName;
+
+        // Pre-select if in favorites
+        if (state.spFilterSelected.includes(sp.spDisplayName)) {
+            inpFilter.checked = true;
+        }
+
+        const labelFilter = document.createElement('label');
+        labelFilter.className = "label";
+        labelFilter.setAttribute('for', sp.spDisplayName);
+        labelFilter.innerHTML = sp.spDisplayName;
+
+        liFilter.appendChild(inpFilter);
+        liFilter.appendChild(imgFilter);
+        liFilter.appendChild(labelFilter);
+
+        dFragFilter.appendChild(liFilter);
+    });
+
+    spFilterList.appendChild(dFragFilter);
 }
 
+function handleSpFilterChange(event) {
+    if (event.target.type === 'checkbox') {
+        const checked = document.querySelectorAll('#' + CONFIG.selectors.spFilterList + ' input[type="checkbox"]:checked');
+        state.spFilterSelected = Array.from(checked).map(x => x.value);
+    }
+}
 
-  function myPickedServices() {
-	if (selected <1){
-		if (confirm('Du har inte valt några tjänster. Klickar du OK så kommer inga tjänster att visas i portalen (om du lagt till egna länkar så kommer endast dessa att visas i portalen). Vill du fortsätta?')) {
-		addMyPickedServices();
-		}
-	} else {
-		addMyPickedServices();
-		}
-  }
+function loadCustomUrls() {
+    if (state.customUrlArray.length > 0) {
+        showCustUrls();
+        insertCustUrls();
+    } else {
+        const custUrlHeading = document.getElementById(CONFIG.selectors.custUrlHeading);
+        if (custUrlHeading) custUrlHeading.innerHTML = "";
+    }
+}
 
-//Skriv val av visade tjänster till localStorage och tillbaka till huvudsida
-  function addMyPickedServices() {
-  let string = JSON.stringify(selected);
-  localStorage.setItem("pickedServices",string);
-  document.getElementById("spFilterDiv").style.display="none";
-  document.getElementById("settings").style.display="none";
-  location.reload();
-  }	
+function addCustomUrl() {
+    const custNameInput = document.getElementById(CONFIG.selectors.custNameInput);
+    const custUrlInput = document.getElementById(CONFIG.selectors.custUrlInput);
 
-//Tillbaka till portal från settings-sida
+    if (!custNameInput || !custUrlInput) return;
+
+    const customUrlObject = {
+        custName: custNameInput.value,
+        custUrl: custUrlInput.value
+    };
+
+    state.customUrlArray.push(customUrlObject);
+    localStorage.setItem(CONFIG.storageKeys.savedUrls, JSON.stringify(state.customUrlArray));
+
+    showCustUrls();
+    insertCustUrls();
+}
+
+function showCustUrls() {
+    const showSavedUrls = document.getElementById(CONFIG.selectors.showSavedUrls);
+    if (!showSavedUrls) return;
+
+    showSavedUrls.innerHTML = "";
+
+    state.customUrlArray.forEach((urlObj, index) => {
+        const custUrlRow = document.createElement('tr');
+
+        const custUrlNameTd = document.createElement('td');
+        custUrlNameTd.innerText = urlObj.custName;
+
+        const custUrlLinkTd = document.createElement('td');
+        custUrlLinkTd.innerHTML = urlObj.custUrl;
+
+        const custUrlButtonTd = document.createElement('td');
+        const custUrlRemBut = document.createElement('button');
+        custUrlRemBut.innerHTML = "Ta bort";
+        custUrlRemBut.addEventListener('click', () => remCustUrl(index));
+
+        custUrlButtonTd.appendChild(custUrlRemBut);
+
+        custUrlRow.appendChild(custUrlNameTd);
+        custUrlRow.appendChild(custUrlLinkTd);
+        custUrlRow.appendChild(custUrlButtonTd);
+
+        showSavedUrls.appendChild(custUrlRow);
+    });
+}
+
+function remCustUrl(index) {
+    state.customUrlArray.splice(index, 1);
+    localStorage.setItem(CONFIG.storageKeys.savedUrls, JSON.stringify(state.customUrlArray));
+    showCustUrls();
+    insertCustUrls();
+}
+
+function insertCustUrls() {
+    const custUrlHeading = document.getElementById(CONFIG.selectors.custUrlHeading);
+    if (custUrlHeading) {
+        if (state.customUrlArray.length > 0) {
+            custUrlHeading.innerHTML = "<hr><br>Egna länkar utan direktinloggning";
+        } else {
+            custUrlHeading.innerHTML = "";
+        }
+    }
+
+    const custUrlList = document.getElementById(CONFIG.selectors.custUrlList);
+    if (!custUrlList) return;
+
+    custUrlList.innerHTML = "";
+
+    state.customUrlArray.forEach(urlObj => {
+        const custUrlA = document.createElement("a");
+        custUrlA.className = "flex-miniitem";
+        custUrlA.setAttribute("style", "color:black !important; background-color:#E8E8E8 !important");
+        custUrlA.setAttribute('href', urlObj.custUrl);
+        custUrlA.target = "_blank";
+
+        const custUrlName = document.createElement("p");
+        custUrlName.className = "flex-miniitem-txt";
+        custUrlName.innerHTML = urlObj.custName;
+
+        const custUrlImg = document.createElement('img');
+        custUrlImg.className = "flex-miniitem-img";
+        custUrlImg.setAttribute('src', "img/custurl.png");
+
+        custUrlA.appendChild(custUrlImg);
+        custUrlA.appendChild(custUrlName);
+
+        custUrlList.appendChild(custUrlA);
+    });
+}
+
+// User Actions
+function toggleSettings() {
+    const settingsDiv = document.getElementById(CONFIG.selectors.settingsDiv);
+    const idpSelectDiv = document.getElementById(CONFIG.selectors.idpSelectDiv);
+
+    if (settingsDiv.style.display === "none") {
+        settingsDiv.style.display = "flex";
+    } else {
+        settingsDiv.style.display = "none";
+        if (idpSelectDiv) idpSelectDiv.style.display = "none";
+    }
+}
+
+function showNewIdpSelection() {
+    const idpSelectDiv = document.getElementById(CONFIG.selectors.idpSelectDiv);
+    if (idpSelectDiv.style.display === "none") {
+        idpSelectDiv.style.display = "block";
+        document.getElementById(CONFIG.selectors.selectIdpHeading).innerHTML = "Välj en ny inloggning eller gå tillbaka till portalen";
+        document.getElementById(CONFIG.selectors.idpSelectOpt).innerHTML = "Byt inloggning";
+        document.getElementById(CONFIG.selectors.currentIdp).innerHTML = "Nuvarande val är: " + localStorage.getItem(CONFIG.storageKeys.idpOrgName);
+
+        const backBtns = document.querySelectorAll(CONFIG.selectors.backToPortal);
+        backBtns.forEach(btn => btn.style.display = ""); // Show back buttons
+
+        alert("Du kommer nu att kunna göra om ditt val av organisation, men tänk på att om du redan har loggat in i en tjänst så kommer tjänsten att komma ihåg den inloggningen. Du kan därför behöva stänga webbläsaren och öppna portalen igen.");
+    } else {
+        idpSelectDiv.style.display = "none";
+    }
+}
+
+function showCardStyleSettings() {
+    const el = document.getElementById(CONFIG.selectors.cardStyleDiv);
+    el.style.display = (el.style.display === "none") ? "block" : "none";
+}
+
+function cardStyleSubmit() {
+    const radios = document.getElementsByName('cardStyle');
+    for (let i = 0; i < radios.length; i++) {
+        if (radios[i].checked) {
+            localStorage.setItem(CONFIG.storageKeys.cardStyle, radios[i].value);
+            location.reload();
+        }
+    }
+}
+
+function showSpFilterSettings() {
+    const el = document.getElementById(CONFIG.selectors.spFilterDiv);
+    if (el.style.display === "none") {
+        // state.spFilterSelected is already loaded from localStorage in init()
+        el.style.display = "block";
+    } else {
+        el.style.display = "none";
+    }
+}
+
+function showCustomUrlSettings() {
+    const el = document.getElementById(CONFIG.selectors.customUrlDiv);
+    el.style.display = (el.style.display === "none") ? "block" : "none";
+}
+
+function myPickedServices() {
+    if (state.spFilterSelected.length < 1) {
+        if (confirm('Du har inte valt några tjänster. Klickar du OK så kommer inga tjänster att visas i portalen (om du lagt till egna länkar så kommer endast dessa att visas i portalen). Vill du fortsätta?')) {
+            addMyPickedServices();
+        }
+    } else {
+        addMyPickedServices();
+    }
+}
+
+function addMyPickedServices() {
+    localStorage.setItem(CONFIG.storageKeys.pickedServices, JSON.stringify(state.spFilterSelected));
+    document.getElementById(CONFIG.selectors.spFilterDiv).style.display = "none";
+    document.getElementById(CONFIG.selectors.settingsDiv).style.display = "none";
+    location.reload();
+}
+
 function backToPortal() {
-	document.getElementById("idpSelectDiv").style.display="none";
-	document.getElementById("settings").style.display="none";
-	document.getElementById("cardStyle").style.display="none";
-	document.getElementById("spFilterDiv").style.display="none";
-	document.getElementById("customUrlDiv").style.display="none";
+    const divs = [
+        CONFIG.selectors.idpSelectDiv,
+        CONFIG.selectors.settingsDiv,
+        CONFIG.selectors.cardStyleDiv,
+        CONFIG.selectors.spFilterDiv,
+        CONFIG.selectors.customUrlDiv
+    ];
+
+    divs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = "none";
+    });
 }
 
-//Rensa localStorage och ladda om dokumentet
-function clearAll() {
-	
-	if (confirm('Är du säker på att du vill rensa alla inställningar?')) {
-		localStorage.clear();
-		location.reload();
-		}
-		}
+function clearAllSettings() {
+    if (confirm('Är du säker på att du vill rensa alla inställningar?')) {
+        localStorage.clear();
+        location.reload();
+    }
+}
 
-//Sökfilter i top-bar
 function searchFilter() {
-    var input, filter, ul, li, a, i, txtValue;
-    input = document.getElementById("searchInput");
-    filter = input.value.toUpperCase();
-    div = document.getElementById("spList");
-    a = div.getElementsByTagName("a");
-    for (i = 0; i < a.length; i++) {
-        p = a[i].getElementsByTagName("p")[0];
-        txtValue = a.textContent || p.innerText;
+    const input = document.getElementById(CONFIG.selectors.searchInput);
+    const filter = input.value.toUpperCase();
+    const div = document.getElementById(CONFIG.selectors.spList);
+    const a = div.getElementsByTagName("a");
+
+    for (let i = 0; i < a.length; i++) {
+        const p = a[i].getElementsByTagName("p")[0];
+        const txtValue = a[i].textContent || p.innerText;
         if (txtValue.toUpperCase().indexOf(filter) > -1) {
             a[i].style.display = "";
         } else {
@@ -494,12 +562,3 @@ function searchFilter() {
         }
     }
 }
-
-// XXXXXXXXXXXXXXXXXXXXXXXXX </DIVERSE FUNKTIONER SOM INITIERAS AV ANVÄNDAREN> XXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-// XXXXXXXXXXXXXXXXXXXXXXXXX <FUNKTIONER SOM UTFÖRS EFTER ATT DOKUMENTET LADDATS> XXXXXXXXXXXXXXXXXXXXXXXXX
-
-//Append egna länkar i SSO-vyn (om de finns)
-document.getElementById("custUrlList").onload = insertCustUrls();
-
-// XXXXXXXXXXXXXXXXXXXXXXXXX </FUNKTIONER SOM UTFÖRS EFTER ATT DOKUMENTET LADDATS> XXXXXXXXXXXXXXXXXXXXXXXXX
