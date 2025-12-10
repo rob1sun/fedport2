@@ -34,14 +34,16 @@ const CONFIG = {
         btnSpFilterSettings: 'btnSpFilterSettings',
         cardStyleSettings: 'cardStyleSettings',
         customUrlSettings: 'customUrlSettings',
-        clearAll: 'clearAll'
+        clearAll: 'clearAll',
+        themeToggle: 'themeToggle'
     },
     storageKeys: {
         idpOrgEntity: 'idpOrgEntity',
         idpOrgName: 'idpOrgName',
         cardStyle: 'cardStyle',
         pickedServices: 'pickedServices',
-        savedUrls: 'savedUrls'
+        savedUrls: 'savedUrls',
+        theme: 'theme'
     }
 };
 
@@ -50,7 +52,8 @@ let state = {
     pickedIdp: null,
     cardStyling: 'full',
     customUrlArray: [],
-    spFilterSelected: []
+    spFilterSelected: [],
+    theme: 'auto'
 };
 
 // Initialize on DOMContentLoaded
@@ -60,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function init() {
     loadState();
+    applyTheme(state.theme); // Apply theme on load
     setupEventListeners();
     checkInitialView();
     updateHeader();
@@ -84,6 +88,9 @@ function loadState() {
 
     const pickedServices = localStorage.getItem(CONFIG.storageKeys.pickedServices);
     state.spFilterSelected = pickedServices ? JSON.parse(pickedServices) : [];
+
+    const theme = localStorage.getItem(CONFIG.storageKeys.theme);
+    state.theme = theme || 'auto';
 }
 
 function setupEventListeners() {
@@ -163,6 +170,34 @@ function setupEventListeners() {
     const spFilterList = document.getElementById(CONFIG.selectors.spFilterList);
     if (spFilterList) {
         spFilterList.addEventListener('change', handleSpFilterChange);
+    }
+
+    // Theme Toggle
+    const themeToggle = document.getElementById(CONFIG.selectors.themeToggle);
+    if (themeToggle) {
+        themeToggle.addEventListener('click', cycleTheme);
+    }
+}
+
+// Theme Handling
+function cycleTheme() {
+    if (state.theme === 'auto') state.theme = 'dark';
+    else if (state.theme === 'dark') state.theme = 'light';
+    else state.theme = 'auto';
+
+    localStorage.setItem(CONFIG.storageKeys.theme, state.theme);
+    applyTheme(state.theme);
+}
+
+function applyTheme(theme) {
+    // If auto, we remove the attribute so CSS media query takes over
+    // OR we detect system preference and set it explicitly if we want to show correct icon state
+    // But CSS is cleaner: :root:not([data-theme="light"]) for dark override if prefer-color-scheme is dark.
+
+    if (theme === 'auto') {
+        document.documentElement.removeAttribute('data-theme');
+    } else {
+        document.documentElement.setAttribute('data-theme', theme);
     }
 }
 
@@ -391,6 +426,7 @@ function showCustUrls() {
         const custUrlButtonTd = document.createElement('td');
         const custUrlRemBut = document.createElement('button');
         custUrlRemBut.innerHTML = "Ta bort";
+        custUrlRemBut.className = "button secondary"; // Add styling class
         custUrlRemBut.addEventListener('click', () => remCustUrl(index));
 
         custUrlButtonTd.appendChild(custUrlRemBut);
@@ -414,7 +450,7 @@ function insertCustUrls() {
     const custUrlHeading = document.getElementById(CONFIG.selectors.custUrlHeading);
     if (custUrlHeading) {
         if (state.customUrlArray.length > 0) {
-            custUrlHeading.innerHTML = "<hr><br>Egna länkar utan direktinloggning";
+            custUrlHeading.innerHTML = "Egna länkar";
         } else {
             custUrlHeading.innerHTML = "";
         }
@@ -428,7 +464,8 @@ function insertCustUrls() {
     state.customUrlArray.forEach(urlObj => {
         const custUrlA = document.createElement("a");
         custUrlA.className = "flex-miniitem";
-        custUrlA.setAttribute("style", "color:black !important; background-color:#E8E8E8 !important");
+        // REMOVED INLINE STYLES FOR THEME COMPATIBILITY
+        // custUrlA.setAttribute("style", "color:black !important; background-color:#E8E8E8 !important");
         custUrlA.setAttribute('href', urlObj.custUrl);
         custUrlA.target = "_blank";
 
@@ -453,9 +490,13 @@ function toggleSettings() {
     const idpSelectDiv = document.getElementById(CONFIG.selectors.idpSelectDiv);
 
     if (settingsDiv.style.display === "none") {
-        settingsDiv.style.display = "flex";
+        settingsDiv.style.display = "block"; // Changed from flex to block to match drawer style
     } else {
         settingsDiv.style.display = "none";
+        // DO NOT hide idpSelectDiv here implicitly, it can be confusing.
+        // Logic check: When opening settings, we are on the main page.
+        // We probably don't want to hide the IDP selector if it was open for some reason,
+        // but typically Settings is only available when logged in (IDP chosen).
         if (idpSelectDiv) idpSelectDiv.style.display = "none";
     }
 }
@@ -464,14 +505,17 @@ function showNewIdpSelection() {
     const idpSelectDiv = document.getElementById(CONFIG.selectors.idpSelectDiv);
     if (idpSelectDiv.style.display === "none") {
         idpSelectDiv.style.display = "block";
-        document.getElementById(CONFIG.selectors.selectIdpHeading).innerHTML = "Välj en ny inloggning eller gå tillbaka till portalen";
+        document.getElementById(CONFIG.selectors.selectIdpHeading).innerHTML = "Välj en ny inloggning";
         document.getElementById(CONFIG.selectors.idpSelectOpt).innerHTML = "Byt inloggning";
-        document.getElementById(CONFIG.selectors.currentIdp).innerHTML = "Nuvarande val är: " + localStorage.getItem(CONFIG.storageKeys.idpOrgName);
+        document.getElementById(CONFIG.selectors.currentIdp).innerHTML = "Nuvarande val: " + localStorage.getItem(CONFIG.storageKeys.idpOrgName);
 
         const backBtns = document.querySelectorAll(CONFIG.selectors.backToPortal);
         backBtns.forEach(btn => btn.style.display = ""); // Show back buttons
 
-        alert("Du kommer nu att kunna göra om ditt val av organisation, men tänk på att om du redan har loggat in i en tjänst så kommer tjänsten att komma ihåg den inloggningen. Du kan därför behöva stänga webbläsaren och öppna portalen igen.");
+        // Close settings drawer when opening a modal
+        document.getElementById(CONFIG.selectors.settingsDiv).style.display = "none";
+
+        alert("Du kommer nu att kunna göra om ditt val av organisation. Tänk på att om du redan loggat in i en tjänst kan sessionen finnas kvar.");
     } else {
         idpSelectDiv.style.display = "none";
     }
@@ -479,7 +523,9 @@ function showNewIdpSelection() {
 
 function showCardStyleSettings() {
     const el = document.getElementById(CONFIG.selectors.cardStyleDiv);
-    el.style.display = (el.style.display === "none") ? "block" : "none";
+    // Close settings drawer
+    document.getElementById(CONFIG.selectors.settingsDiv).style.display = "none";
+    el.style.display = "block";
 }
 
 function cardStyleSubmit() {
@@ -494,6 +540,9 @@ function cardStyleSubmit() {
 
 function showSpFilterSettings() {
     const el = document.getElementById(CONFIG.selectors.spFilterDiv);
+    // Close settings drawer
+    document.getElementById(CONFIG.selectors.settingsDiv).style.display = "none";
+
     if (el.style.display === "none") {
         // state.spFilterSelected is already loaded from localStorage in init()
         el.style.display = "block";
@@ -504,12 +553,14 @@ function showSpFilterSettings() {
 
 function showCustomUrlSettings() {
     const el = document.getElementById(CONFIG.selectors.customUrlDiv);
-    el.style.display = (el.style.display === "none") ? "block" : "none";
+    // Close settings drawer
+    document.getElementById(CONFIG.selectors.settingsDiv).style.display = "none";
+    el.style.display = "block";
 }
 
 function myPickedServices() {
     if (state.spFilterSelected.length < 1) {
-        if (confirm('Du har inte valt några tjänster. Klickar du OK så kommer inga tjänster att visas i portalen (om du lagt till egna länkar så kommer endast dessa att visas i portalen). Vill du fortsätta?')) {
+        if (confirm('Du har inte valt några tjänster. Klickar du OK så kommer inga tjänster att visas i portalen. Vill du fortsätta?')) {
             addMyPickedServices();
         }
     } else {
