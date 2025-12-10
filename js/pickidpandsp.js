@@ -15,7 +15,7 @@ const CONFIG = {
         currentIdp: 'currentIdp',
         backToPortal: '.js-back-to-portal',
         showHeader: 'show',
-        spFilterList: 'spFilterList', // Deprecated/Unused now but kept for safety
+        spFilterList: 'spFilterList',
         spFilterDiv: 'spFilterDiv',
         cardStyleDiv: 'cardStyle',
         customUrlDiv: 'customUrlDiv',
@@ -27,7 +27,7 @@ const CONFIG = {
         custNameInput: 'custName',
         custUrlInput: 'custUrl',
         btnCardStyleSubmit: 'btnCardStyleSubmit',
-        btnSaveViewMode: 'btnSaveViewMode', // Renamed from btnMyPickedServices
+        btnSaveViewMode: 'btnSaveViewMode',
         btnAddCustomUrl: 'btnAddCustomUrl',
         btnSettings: 'btnSettings',
         newIdp: 'newIdp',
@@ -41,10 +41,10 @@ const CONFIG = {
         idpOrgEntity: 'idpOrgEntity',
         idpOrgName: 'idpOrgName',
         cardStyle: 'cardStyle',
-        pickedServices: 'pickedServices', // List of favorite SP names
+        pickedServices: 'pickedServices',
         savedUrls: 'savedUrls',
         theme: 'theme',
-        viewMode: 'viewMode' // New key: 'all' or 'favorites'
+        viewMode: 'viewMode'
     }
 };
 
@@ -55,7 +55,8 @@ let state = {
     customUrlArray: [],
     spFilterSelected: [], // Favorites list (SP names)
     theme: 'auto',
-    viewMode: 'all'
+    viewMode: 'all',
+    spData: [] // Store fetched SP data
 };
 
 // Initialize on DOMContentLoaded
@@ -65,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function init() {
     loadState();
-    applyTheme(state.theme); // Apply theme on load
+    applyTheme(state.theme);
     setupEventListeners();
     checkInitialView();
     updateHeader();
@@ -83,7 +84,7 @@ async function init() {
 
 function loadState() {
     state.pickedIdp = localStorage.getItem(CONFIG.storageKeys.idpOrgEntity);
-    state.cardStyling = getCardStyle(); // Uses the helper function
+    state.cardStyling = getCardStyle();
 
     const savedUrls = localStorage.getItem(CONFIG.storageKeys.savedUrls);
     state.customUrlArray = savedUrls ? JSON.parse(savedUrls) : [];
@@ -99,79 +100,66 @@ function loadState() {
 }
 
 function setupEventListeners() {
-    // IDP Select Change
     const idpSelect = document.getElementById(CONFIG.selectors.idpSelect);
     if (idpSelect) {
         idpSelect.addEventListener('change', updateIdp);
     }
 
-    // Back to Portal Buttons
     const backButtons = document.querySelectorAll(CONFIG.selectors.backToPortal);
     backButtons.forEach(btn => {
         btn.addEventListener('click', backToPortal);
     });
 
-    // Card Style Submit
     const btnCardStyleSubmit = document.getElementById(CONFIG.selectors.btnCardStyleSubmit);
     if (btnCardStyleSubmit) {
         btnCardStyleSubmit.addEventListener('click', cardStyleSubmit);
     }
 
-    // View Mode Save (formerly My Picked Services)
     const btnSaveViewMode = document.getElementById(CONFIG.selectors.btnSaveViewMode);
     if (btnSaveViewMode) {
         btnSaveViewMode.addEventListener('click', saveViewMode);
     }
 
-    // Add Custom URL
     const btnAddCustomUrl = document.getElementById(CONFIG.selectors.btnAddCustomUrl);
     if (btnAddCustomUrl) {
         btnAddCustomUrl.addEventListener('click', addCustomUrl);
     }
 
-    // Search Input
     const searchInput = document.getElementById(CONFIG.selectors.searchInput);
     if (searchInput) {
         searchInput.addEventListener('keyup', searchFilter);
     }
 
-    // Settings Toggle
     const btnSettings = document.getElementById(CONFIG.selectors.btnSettings);
     if (btnSettings) {
         btnSettings.addEventListener('click', toggleSettings);
     }
 
-    // New IDP Button
     const btnNewIdp = document.getElementById(CONFIG.selectors.newIdp);
     if (btnNewIdp) {
         btnNewIdp.addEventListener('click', showNewIdpSelection);
     }
 
-    // SP Filter Settings (Favorites View Mode)
     const btnSpFilterSettings = document.getElementById(CONFIG.selectors.btnSpFilterSettings);
     if (btnSpFilterSettings) {
         btnSpFilterSettings.addEventListener('click', showSpFilterSettings);
     }
 
-    // Card Style Settings
     const btnCardStyleSettings = document.getElementById(CONFIG.selectors.cardStyleSettings);
     if (btnCardStyleSettings) {
         btnCardStyleSettings.addEventListener('click', showCardStyleSettings);
     }
 
-    // Custom URL Settings
     const btnCustomUrlSettings = document.getElementById(CONFIG.selectors.customUrlSettings);
     if (btnCustomUrlSettings) {
         btnCustomUrlSettings.addEventListener('click', showCustomUrlSettings);
     }
 
-    // Clear All
     const btnClearAll = document.getElementById(CONFIG.selectors.clearAll);
     if (btnClearAll) {
         btnClearAll.addEventListener('click', clearAllSettings);
     }
 
-    // Theme Toggle
     const themeToggle = document.getElementById(CONFIG.selectors.themeToggle);
     if (themeToggle) {
         themeToggle.addEventListener('click', cycleTheme);
@@ -268,21 +256,23 @@ async function loadSpData() {
     const response = await fetch(CONFIG.urls.sp);
     const data = await response.json();
 
-    // Sort logic handled in appendSpData now
-    appendSpData(data);
+    // Store in state
+    state.spData = data;
+
+    renderSpCards();
 }
 
-function appendSpData(spData) {
+// Renamed from appendSpData to renderSpCards (uses state.spData)
+function renderSpCards() {
     const spList = document.getElementById(CONFIG.selectors.spList);
     if (!spList) return;
 
-    // Clear existing content if any (important for re-renders)
     spList.innerHTML = '';
 
     // 1. Filter based on View Mode
-    let result = spData;
+    let result = [...state.spData]; // Clone array
     if (state.viewMode === 'favorites') {
-        result = spData.filter(sp => state.spFilterSelected.includes(sp.spDisplayName));
+        result = result.filter(sp => state.spFilterSelected.includes(sp.spDisplayName));
     }
 
     // 2. Sort: Favorites first, then Name
@@ -312,7 +302,7 @@ function appendSpData(spData) {
         star.className = isFav ? "star-icon active" : "star-icon inactive";
         star.title = isFav ? "Ta bort favorit" : "Lägg till favorit";
         star.addEventListener('click', (e) => {
-            e.preventDefault(); // Prevent link click
+            e.preventDefault();
             e.stopPropagation();
             toggleSpFavorite(sp.spDisplayName, star);
         });
@@ -321,27 +311,30 @@ function appendSpData(spData) {
         const img = document.createElement('img');
         img.className = "flex-" + state.cardStyling + "item-img";
         img.setAttribute('src', sp.spImg);
+        a.appendChild(img);
+
+        // Wrap text elements for layout
+        const textWrapper = document.createElement('div');
+        textWrapper.className = "card-text-wrapper";
 
         const p = document.createElement('p');
         p.className = "flex-" + state.cardStyling + "item-txt";
         p.innerHTML = sp.spDisplayName;
-
-        a.appendChild(img);
-        a.appendChild(p);
+        textWrapper.appendChild(p);
 
         if (state.cardStyling === 'full') {
             const pOrg = document.createElement('p');
             pOrg.className = "flex-item-org";
             pOrg.innerHTML = sp.shortDescription;
+            textWrapper.appendChild(pOrg);
 
             const pDescription = document.createElement('p');
             pDescription.innerHTML = sp.description;
             pDescription.className = "flex-item-description";
-
-            a.appendChild(pOrg);
-            a.appendChild(pDescription);
+            textWrapper.appendChild(pDescription);
         }
 
+        a.appendChild(textWrapper);
         dFrag.appendChild(a);
     });
 
@@ -358,34 +351,15 @@ function toggleSpFavorite(spName, starElement) {
     const idx = state.spFilterSelected.indexOf(spName);
     if (idx > -1) {
         state.spFilterSelected.splice(idx, 1);
-        starElement.className = "star-icon inactive";
-        starElement.title = "Lägg till favorit";
+        // starElement.className = "star-icon inactive"; // No longer needed as we re-render
     } else {
         state.spFilterSelected.push(spName);
-        starElement.className = "star-icon active";
-        starElement.title = "Ta bort favorit";
+        // starElement.className = "star-icon active";
     }
     localStorage.setItem(CONFIG.storageKeys.pickedServices, JSON.stringify(state.spFilterSelected));
 
-    // If we are in "Show Only Favorites" mode, we should probably re-render or hide the element
-    // But immediate disappearance can be annoying.
-    // However, the user asked for "show only favorites". If I unstar, it's no longer a favorite.
-    // If I'm in 'favorites' mode, removing a star should ideally remove the card.
-    if (state.viewMode === 'favorites' && idx > -1) {
-         // It was removed. Re-render to hide it.
-         // We need to reload data or cache the full list.
-         // Since loadSpData fetches, we should separate fetch from render.
-         // For now, we reload the whole page or just trigger a reload if we had the data.
-         // Ideally, we should separate 'fetch' from 'render' logic more cleanly.
-         // Quick fix: Call loadSpData() again? It fetches.
-         // Better: Store spData in state or a global var if not already.
-         // Since the original code didn't store full data globally (passed to appendSpData),
-         // we will trigger a full reload for simplicity to match the original style,
-         // OR we just hide the parent element.
-
-         const card = starElement.parentElement;
-         card.style.display = 'none';
-    }
+    // Immediate Re-render to sort
+    renderSpCards();
 }
 
 function loadCustomUrls() {
@@ -407,7 +381,7 @@ function addCustomUrl() {
     const customUrlObject = {
         custName: custNameInput.value,
         custUrl: custUrlInput.value,
-        isFavorite: false // Default to not favorite
+        isFavorite: false
     };
 
     state.customUrlArray.push(customUrlObject);
@@ -458,17 +432,15 @@ function remCustUrl(index) {
 function insertCustUrls() {
     const custUrlHeading = document.getElementById(CONFIG.selectors.custUrlHeading);
 
-    // Filter based on viewMode
-    let displayArray = state.customUrlArray;
+    let displayArray = [...state.customUrlArray]; // clone
     if (state.viewMode === 'favorites') {
-        displayArray = state.customUrlArray.filter(u => u.isFavorite);
+        displayArray = displayArray.filter(u => u.isFavorite);
     }
 
-    // Sort: Favorites first
     displayArray.sort((a, b) => {
         if (a.isFavorite && !b.isFavorite) return -1;
         if (!a.isFavorite && b.isFavorite) return 1;
-        return 0; // Keep original order otherwise
+        return 0;
     });
 
     if (custUrlHeading) {
@@ -476,8 +448,6 @@ function insertCustUrls() {
             custUrlHeading.innerHTML = "Egna länkar";
             custUrlHeading.style.display = 'block';
         } else {
-             // If we have custom URLs but filtered them out, maybe show heading?
-             // Logic says: if no custom urls shown, hide heading.
              custUrlHeading.innerHTML = "";
              custUrlHeading.style.display = 'none';
         }
@@ -494,7 +464,6 @@ function insertCustUrls() {
         custUrlA.setAttribute('href', urlObj.custUrl);
         custUrlA.target = "_blank";
 
-        // Star Icon for Custom URL
         const star = document.createElement('span');
         star.className = urlObj.isFavorite ? "star-icon active" : "star-icon inactive";
         star.title = urlObj.isFavorite ? "Ta bort favorit" : "Lägg till favorit";
@@ -505,15 +474,16 @@ function insertCustUrls() {
         });
         custUrlA.appendChild(star);
 
+        const img = document.createElement('img');
+        img.className = "flex-miniitem-img";
+        img.setAttribute('src', "img/custurl.png");
+        custUrlA.appendChild(img);
+
+        // Wrap text for consistency if needed, though miniitem style might differ
+        // Keeping miniitem simple for now, but star is added.
         const custUrlName = document.createElement("p");
         custUrlName.className = "flex-miniitem-txt";
         custUrlName.innerHTML = urlObj.custName;
-
-        const custUrlImg = document.createElement('img');
-        custUrlImg.className = "flex-miniitem-img";
-        custUrlImg.setAttribute('src', "img/custurl.png");
-
-        custUrlA.appendChild(custUrlImg);
         custUrlA.appendChild(custUrlName);
 
         custUrlList.appendChild(custUrlA);
@@ -524,18 +494,8 @@ function toggleCustomFavorite(urlObj, starElement) {
     urlObj.isFavorite = !urlObj.isFavorite;
     localStorage.setItem(CONFIG.storageKeys.savedUrls, JSON.stringify(state.customUrlArray));
 
-    if (urlObj.isFavorite) {
-        starElement.className = "star-icon active";
-        starElement.title = "Ta bort favorit";
-    } else {
-        starElement.className = "star-icon inactive";
-        starElement.title = "Lägg till favorit";
-    }
-
-    if (state.viewMode === 'favorites' && !urlObj.isFavorite) {
-        const card = starElement.parentElement;
-        card.style.display = 'none';
-    }
+    // Immediate Re-render
+    insertCustUrls();
 }
 
 // User Actions
@@ -593,7 +553,6 @@ function showSpFilterSettings() {
     if (el.style.display === "none") {
         el.style.display = "block";
 
-        // Set Radio Button state based on viewMode
         const radios = document.getElementsByName('viewMode');
         for (let i = 0; i < radios.length; i++) {
             if (radios[i].value === state.viewMode) {
@@ -626,7 +585,6 @@ function saveViewMode() {
     document.getElementById(CONFIG.selectors.spFilterDiv).style.display = "none";
     document.getElementById(CONFIG.selectors.settingsDiv).style.display = "none";
 
-    // Reload to apply sorting/filtering
     location.reload();
 }
 
