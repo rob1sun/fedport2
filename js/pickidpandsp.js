@@ -15,7 +15,7 @@ const CONFIG = {
         currentIdp: 'currentIdp',
         backToPortal: '.js-back-to-portal',
         showHeader: 'show',
-        spFilterList: 'spFilterList',
+        spFilterList: 'spFilterList', // Deprecated/Unused now but kept for safety
         spFilterDiv: 'spFilterDiv',
         cardStyleDiv: 'cardStyle',
         customUrlDiv: 'customUrlDiv',
@@ -27,7 +27,7 @@ const CONFIG = {
         custNameInput: 'custName',
         custUrlInput: 'custUrl',
         btnCardStyleSubmit: 'btnCardStyleSubmit',
-        btnMyPickedServices: 'btnMyPickedServices',
+        btnSaveViewMode: 'btnSaveViewMode', // Renamed from btnMyPickedServices
         btnAddCustomUrl: 'btnAddCustomUrl',
         btnSettings: 'btnSettings',
         newIdp: 'newIdp',
@@ -41,9 +41,10 @@ const CONFIG = {
         idpOrgEntity: 'idpOrgEntity',
         idpOrgName: 'idpOrgName',
         cardStyle: 'cardStyle',
-        pickedServices: 'pickedServices',
+        pickedServices: 'pickedServices', // List of favorite SP names
         savedUrls: 'savedUrls',
-        theme: 'theme'
+        theme: 'theme',
+        viewMode: 'viewMode' // New key: 'all' or 'favorites'
     }
 };
 
@@ -52,8 +53,9 @@ let state = {
     pickedIdp: null,
     cardStyling: 'full',
     customUrlArray: [],
-    spFilterSelected: [],
-    theme: 'auto'
+    spFilterSelected: [], // Favorites list (SP names)
+    theme: 'auto',
+    viewMode: 'all'
 };
 
 // Initialize on DOMContentLoaded
@@ -91,6 +93,9 @@ function loadState() {
 
     const theme = localStorage.getItem(CONFIG.storageKeys.theme);
     state.theme = theme || 'auto';
+
+    const viewMode = localStorage.getItem(CONFIG.storageKeys.viewMode);
+    state.viewMode = viewMode || 'all';
 }
 
 function setupEventListeners() {
@@ -112,10 +117,10 @@ function setupEventListeners() {
         btnCardStyleSubmit.addEventListener('click', cardStyleSubmit);
     }
 
-    // My Picked Services Submit
-    const btnMyPickedServices = document.getElementById(CONFIG.selectors.btnMyPickedServices);
-    if (btnMyPickedServices) {
-        btnMyPickedServices.addEventListener('click', myPickedServices);
+    // View Mode Save (formerly My Picked Services)
+    const btnSaveViewMode = document.getElementById(CONFIG.selectors.btnSaveViewMode);
+    if (btnSaveViewMode) {
+        btnSaveViewMode.addEventListener('click', saveViewMode);
     }
 
     // Add Custom URL
@@ -142,7 +147,7 @@ function setupEventListeners() {
         btnNewIdp.addEventListener('click', showNewIdpSelection);
     }
 
-    // SP Filter Settings (Favorites)
+    // SP Filter Settings (Favorites View Mode)
     const btnSpFilterSettings = document.getElementById(CONFIG.selectors.btnSpFilterSettings);
     if (btnSpFilterSettings) {
         btnSpFilterSettings.addEventListener('click', showSpFilterSettings);
@@ -166,12 +171,6 @@ function setupEventListeners() {
         btnClearAll.addEventListener('click', clearAllSettings);
     }
 
-    // SP Filter List Change (Delegation)
-    const spFilterList = document.getElementById(CONFIG.selectors.spFilterList);
-    if (spFilterList) {
-        spFilterList.addEventListener('change', handleSpFilterChange);
-    }
-
     // Theme Toggle
     const themeToggle = document.getElementById(CONFIG.selectors.themeToggle);
     if (themeToggle) {
@@ -190,10 +189,6 @@ function cycleTheme() {
 }
 
 function applyTheme(theme) {
-    // If auto, we remove the attribute so CSS media query takes over
-    // OR we detect system preference and set it explicitly if we want to show correct icon state
-    // But CSS is cleaner: :root:not([data-theme="light"]) for dark override if prefer-color-scheme is dark.
-
     if (theme === 'auto') {
         document.documentElement.removeAttribute('data-theme');
     } else {
@@ -201,7 +196,7 @@ function applyTheme(theme) {
     }
 }
 
-// Helper: Get Card Style (Addresses TODO)
+// Helper: Get Card Style
 function getCardStyle() {
     let style = localStorage.getItem(CONFIG.storageKeys.cardStyle);
     if (!style) {
@@ -272,35 +267,56 @@ function updateIdp() {
 async function loadSpData() {
     const response = await fetch(CONFIG.urls.sp);
     const data = await response.json();
+
+    // Sort logic handled in appendSpData now
     appendSpData(data);
-    appendSpDataFilter(data);
 }
 
 function appendSpData(spData) {
     const spList = document.getElementById(CONFIG.selectors.spList);
     if (!spList) return;
 
-    let spFilter = [];
-    const pickedServices = localStorage.getItem(CONFIG.storageKeys.pickedServices);
+    // Clear existing content if any (important for re-renders)
+    spList.innerHTML = '';
 
-    if (pickedServices) {
-        spFilter = JSON.parse(pickedServices);
-    } else {
-        spFilter = spData.map(sp => sp.spDisplayName);
+    // 1. Filter based on View Mode
+    let result = spData;
+    if (state.viewMode === 'favorites') {
+        result = spData.filter(sp => state.spFilterSelected.includes(sp.spDisplayName));
     }
 
-    // Filter spData based on spFilter
-    const result = spData.filter(sp => spFilter.includes(sp.spDisplayName));
+    // 2. Sort: Favorites first, then Name
+    result.sort((a, b) => {
+        const aFav = state.spFilterSelected.includes(a.spDisplayName);
+        const bFav = state.spFilterSelected.includes(b.spDisplayName);
+
+        if (aFav && !bFav) return -1;
+        if (!aFav && bFav) return 1;
+
+        return a.spDisplayName.localeCompare(b.spDisplayName);
+    });
 
     const dFrag = document.createDocumentFragment();
 
     result.forEach(sp => {
         const concLink = sp.spLink + (state.pickedIdp || '') + sp.spTarget;
+        const isFav = state.spFilterSelected.includes(sp.spDisplayName);
 
         const a = document.createElement('a');
         a.className = "flex-" + state.cardStyling + "item";
         a.setAttribute('href', concLink);
         a.target = "_blank";
+
+        // Star Icon
+        const star = document.createElement('span');
+        star.className = isFav ? "star-icon active" : "star-icon inactive";
+        star.title = isFav ? "Ta bort favorit" : "Lägg till favorit";
+        star.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent link click
+            e.stopPropagation();
+            toggleSpFavorite(sp.spDisplayName, star);
+        });
+        a.appendChild(star);
 
         const img = document.createElement('img');
         img.className = "flex-" + state.cardStyling + "item-img";
@@ -330,53 +346,45 @@ function appendSpData(spData) {
     });
 
     spList.appendChild(dFrag);
+
+    // Re-apply search filter if search input has value
+    const searchInput = document.getElementById(CONFIG.selectors.searchInput);
+    if (searchInput && searchInput.value) {
+        searchFilter();
+    }
 }
 
-function appendSpDataFilter(spData) {
-    const spFilterList = document.getElementById(CONFIG.selectors.spFilterList);
-    if (!spFilterList) return;
+function toggleSpFavorite(spName, starElement) {
+    const idx = state.spFilterSelected.indexOf(spName);
+    if (idx > -1) {
+        state.spFilterSelected.splice(idx, 1);
+        starElement.className = "star-icon inactive";
+        starElement.title = "Lägg till favorit";
+    } else {
+        state.spFilterSelected.push(spName);
+        starElement.className = "star-icon active";
+        starElement.title = "Ta bort favorit";
+    }
+    localStorage.setItem(CONFIG.storageKeys.pickedServices, JSON.stringify(state.spFilterSelected));
 
-    const dFragFilter = document.createDocumentFragment();
+    // If we are in "Show Only Favorites" mode, we should probably re-render or hide the element
+    // But immediate disappearance can be annoying.
+    // However, the user asked for "show only favorites". If I unstar, it's no longer a favorite.
+    // If I'm in 'favorites' mode, removing a star should ideally remove the card.
+    if (state.viewMode === 'favorites' && idx > -1) {
+         // It was removed. Re-render to hide it.
+         // We need to reload data or cache the full list.
+         // Since loadSpData fetches, we should separate fetch from render.
+         // For now, we reload the whole page or just trigger a reload if we had the data.
+         // Ideally, we should separate 'fetch' from 'render' logic more cleanly.
+         // Quick fix: Call loadSpData() again? It fetches.
+         // Better: Store spData in state or a global var if not already.
+         // Since the original code didn't store full data globally (passed to appendSpData),
+         // we will trigger a full reload for simplicity to match the original style,
+         // OR we just hide the parent element.
 
-    spData.forEach(sp => {
-        const liFilter = document.createElement('li');
-        liFilter.className = "li";
-
-        const imgFilter = document.createElement('img');
-        imgFilter.className = "img";
-        imgFilter.setAttribute('src', sp.spImg);
-
-        const inpFilter = document.createElement('input');
-        inpFilter.className = "inp";
-        inpFilter.type = "checkbox";
-        inpFilter.id = sp.spDisplayName;
-        inpFilter.name = sp.spDisplayName;
-        inpFilter.value = sp.spDisplayName;
-
-        // Pre-select if in favorites
-        if (state.spFilterSelected.includes(sp.spDisplayName)) {
-            inpFilter.checked = true;
-        }
-
-        const labelFilter = document.createElement('label');
-        labelFilter.className = "label";
-        labelFilter.setAttribute('for', sp.spDisplayName);
-        labelFilter.innerHTML = sp.spDisplayName;
-
-        liFilter.appendChild(inpFilter);
-        liFilter.appendChild(imgFilter);
-        liFilter.appendChild(labelFilter);
-
-        dFragFilter.appendChild(liFilter);
-    });
-
-    spFilterList.appendChild(dFragFilter);
-}
-
-function handleSpFilterChange(event) {
-    if (event.target.type === 'checkbox') {
-        const checked = document.querySelectorAll('#' + CONFIG.selectors.spFilterList + ' input[type="checkbox"]:checked');
-        state.spFilterSelected = Array.from(checked).map(x => x.value);
+         const card = starElement.parentElement;
+         card.style.display = 'none';
     }
 }
 
@@ -398,7 +406,8 @@ function addCustomUrl() {
 
     const customUrlObject = {
         custName: custNameInput.value,
-        custUrl: custUrlInput.value
+        custUrl: custUrlInput.value,
+        isFavorite: false // Default to not favorite
     };
 
     state.customUrlArray.push(customUrlObject);
@@ -426,7 +435,7 @@ function showCustUrls() {
         const custUrlButtonTd = document.createElement('td');
         const custUrlRemBut = document.createElement('button');
         custUrlRemBut.innerHTML = "Ta bort";
-        custUrlRemBut.className = "button secondary"; // Add styling class
+        custUrlRemBut.className = "button secondary";
         custUrlRemBut.addEventListener('click', () => remCustUrl(index));
 
         custUrlButtonTd.appendChild(custUrlRemBut);
@@ -448,11 +457,29 @@ function remCustUrl(index) {
 
 function insertCustUrls() {
     const custUrlHeading = document.getElementById(CONFIG.selectors.custUrlHeading);
+
+    // Filter based on viewMode
+    let displayArray = state.customUrlArray;
+    if (state.viewMode === 'favorites') {
+        displayArray = state.customUrlArray.filter(u => u.isFavorite);
+    }
+
+    // Sort: Favorites first
+    displayArray.sort((a, b) => {
+        if (a.isFavorite && !b.isFavorite) return -1;
+        if (!a.isFavorite && b.isFavorite) return 1;
+        return 0; // Keep original order otherwise
+    });
+
     if (custUrlHeading) {
-        if (state.customUrlArray.length > 0) {
+        if (displayArray.length > 0) {
             custUrlHeading.innerHTML = "Egna länkar";
+            custUrlHeading.style.display = 'block';
         } else {
-            custUrlHeading.innerHTML = "";
+             // If we have custom URLs but filtered them out, maybe show heading?
+             // Logic says: if no custom urls shown, hide heading.
+             custUrlHeading.innerHTML = "";
+             custUrlHeading.style.display = 'none';
         }
     }
 
@@ -461,13 +488,22 @@ function insertCustUrls() {
 
     custUrlList.innerHTML = "";
 
-    state.customUrlArray.forEach(urlObj => {
+    displayArray.forEach(urlObj => {
         const custUrlA = document.createElement("a");
         custUrlA.className = "flex-miniitem";
-        // REMOVED INLINE STYLES FOR THEME COMPATIBILITY
-        // custUrlA.setAttribute("style", "color:black !important; background-color:#E8E8E8 !important");
         custUrlA.setAttribute('href', urlObj.custUrl);
         custUrlA.target = "_blank";
+
+        // Star Icon for Custom URL
+        const star = document.createElement('span');
+        star.className = urlObj.isFavorite ? "star-icon active" : "star-icon inactive";
+        star.title = urlObj.isFavorite ? "Ta bort favorit" : "Lägg till favorit";
+        star.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleCustomFavorite(urlObj, star);
+        });
+        custUrlA.appendChild(star);
 
         const custUrlName = document.createElement("p");
         custUrlName.className = "flex-miniitem-txt";
@@ -484,19 +520,33 @@ function insertCustUrls() {
     });
 }
 
+function toggleCustomFavorite(urlObj, starElement) {
+    urlObj.isFavorite = !urlObj.isFavorite;
+    localStorage.setItem(CONFIG.storageKeys.savedUrls, JSON.stringify(state.customUrlArray));
+
+    if (urlObj.isFavorite) {
+        starElement.className = "star-icon active";
+        starElement.title = "Ta bort favorit";
+    } else {
+        starElement.className = "star-icon inactive";
+        starElement.title = "Lägg till favorit";
+    }
+
+    if (state.viewMode === 'favorites' && !urlObj.isFavorite) {
+        const card = starElement.parentElement;
+        card.style.display = 'none';
+    }
+}
+
 // User Actions
 function toggleSettings() {
     const settingsDiv = document.getElementById(CONFIG.selectors.settingsDiv);
     const idpSelectDiv = document.getElementById(CONFIG.selectors.idpSelectDiv);
 
     if (settingsDiv.style.display === "none") {
-        settingsDiv.style.display = "block"; // Changed from flex to block to match drawer style
+        settingsDiv.style.display = "block";
     } else {
         settingsDiv.style.display = "none";
-        // DO NOT hide idpSelectDiv here implicitly, it can be confusing.
-        // Logic check: When opening settings, we are on the main page.
-        // We probably don't want to hide the IDP selector if it was open for some reason,
-        // but typically Settings is only available when logged in (IDP chosen).
         if (idpSelectDiv) idpSelectDiv.style.display = "none";
     }
 }
@@ -510,9 +560,8 @@ function showNewIdpSelection() {
         document.getElementById(CONFIG.selectors.currentIdp).innerHTML = "Nuvarande val: " + localStorage.getItem(CONFIG.storageKeys.idpOrgName);
 
         const backBtns = document.querySelectorAll(CONFIG.selectors.backToPortal);
-        backBtns.forEach(btn => btn.style.display = ""); // Show back buttons
+        backBtns.forEach(btn => btn.style.display = "");
 
-        // Close settings drawer when opening a modal
         document.getElementById(CONFIG.selectors.settingsDiv).style.display = "none";
 
         alert("Du kommer nu att kunna göra om ditt val av organisation. Tänk på att om du redan loggat in i en tjänst kan sessionen finnas kvar.");
@@ -523,7 +572,6 @@ function showNewIdpSelection() {
 
 function showCardStyleSettings() {
     const el = document.getElementById(CONFIG.selectors.cardStyleDiv);
-    // Close settings drawer
     document.getElementById(CONFIG.selectors.settingsDiv).style.display = "none";
     el.style.display = "block";
 }
@@ -540,12 +588,18 @@ function cardStyleSubmit() {
 
 function showSpFilterSettings() {
     const el = document.getElementById(CONFIG.selectors.spFilterDiv);
-    // Close settings drawer
     document.getElementById(CONFIG.selectors.settingsDiv).style.display = "none";
 
     if (el.style.display === "none") {
-        // state.spFilterSelected is already loaded from localStorage in init()
         el.style.display = "block";
+
+        // Set Radio Button state based on viewMode
+        const radios = document.getElementsByName('viewMode');
+        for (let i = 0; i < radios.length; i++) {
+            if (radios[i].value === state.viewMode) {
+                radios[i].checked = true;
+            }
+        }
     } else {
         el.style.display = "none";
     }
@@ -553,25 +607,26 @@ function showSpFilterSettings() {
 
 function showCustomUrlSettings() {
     const el = document.getElementById(CONFIG.selectors.customUrlDiv);
-    // Close settings drawer
     document.getElementById(CONFIG.selectors.settingsDiv).style.display = "none";
     el.style.display = "block";
 }
 
-function myPickedServices() {
-    if (state.spFilterSelected.length < 1) {
-        if (confirm('Du har inte valt några tjänster. Klickar du OK så kommer inga tjänster att visas i portalen. Vill du fortsätta?')) {
-            addMyPickedServices();
+function saveViewMode() {
+    const radios = document.getElementsByName('viewMode');
+    let selectedMode = 'all';
+    for (let i = 0; i < radios.length; i++) {
+        if (radios[i].checked) {
+            selectedMode = radios[i].value;
         }
-    } else {
-        addMyPickedServices();
     }
-}
 
-function addMyPickedServices() {
-    localStorage.setItem(CONFIG.storageKeys.pickedServices, JSON.stringify(state.spFilterSelected));
+    state.viewMode = selectedMode;
+    localStorage.setItem(CONFIG.storageKeys.viewMode, selectedMode);
+
     document.getElementById(CONFIG.selectors.spFilterDiv).style.display = "none";
     document.getElementById(CONFIG.selectors.settingsDiv).style.display = "none";
+
+    // Reload to apply sorting/filtering
     location.reload();
 }
 

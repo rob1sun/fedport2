@@ -557,3 +557,57 @@ main {
         width: 100%;
     }
 }
+
+/* Card Positioning for Star Icon */
+.flex-fullitem,
+.flex-miniitem {
+    position: relative; /* Ensure we can absolute position the star */
+}
+
+/* Star Icon Styles */
+.star-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.2s, color 0.2s;
+    user-select: none;
+    line-height: 1;
+}
+
+/* Active State (Favorite) */
+.star-icon.active {
+    color: var(--color-accent); /* Gold/Yellow */
+}
+
+.star-icon.active::before {
+    content: "★";
+}
+
+/* Inactive State (Not Favorite) */
+.star-icon.inactive {
+    color: var(--color-text-muted);
+    opacity: 0.3;
+}
+
+.star-icon.inactive:hover {
+    opacity: 0.8;
+    color: var(--color-accent);
+}
+
+.star-icon.inactive::before {
+    content: "☆";
+}
+
+/* Adjustments for Mini Card */
+.flex-miniitem .star-icon {
+    font-size: 1.2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 15px;
+}
+.flex-miniitem {
+    padding-right: 40px; /* Make space for the star */
+}

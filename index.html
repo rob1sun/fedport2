@@ -48,16 +48,25 @@
   </div>
 </div>
 
-<!--SETTINGS: FILTER SERVICES-->
+<!--SETTINGS: FILTER SERVICES (VIEW MODE)-->
 <div class="selectIdpDiv" id="spFilterDiv" style="display:none">
   <div class="modal-content">
-    <h2>Favoriter</h2>
-    <p class="modal-desc">Välj vilka tjänster som ska visas i portalen.</p>
-    <div class="filter-list-container">
-        <ul class="ulFilter" id="spFilterList"></ul>
+    <h2>Visningsläge</h2>
+    <p class="modal-desc">Välj hur tjänster ska visas i portalen.</p>
+
+    <div class="card-style-options">
+        <label class="radio-card">
+            <input type="radio" name="viewMode" value="all">
+            <span>Visa alla<br><small>(Favoriter i toppen)</small></span>
+        </label>
+        <label class="radio-card">
+            <input type="radio" name="viewMode" value="favorites">
+            <span>Visa endast favoriter</span>
+        </label>
     </div>
+
     <div class="modal-actions">
-        <button class="button primary" id="btnMyPickedServices">Spara</button>
+        <button class="button primary" id="btnSaveViewMode">Spara</button>
         <button class="button secondary js-back-to-portal" type="button">Tillbaka</button>
     </div>
   </div>
