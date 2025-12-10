@@ -15,10 +15,10 @@
 <div class="selectIdpDiv" id="idpSelectDiv" style="display:block">
 <h2 id="selectIdpHeading"></h2>
 <p id="currentIdp"></p>
-<select class="button" id="idpSelect" onchange="updateIdp()">
+<select class="button" id="idpSelect">
 <option id="idpSelectOpt" value="" selected>Välj inloggning</option>
 </select>
-<button class="button" id="backToPortal" onclick="backToPortal()" style="display:none">Tillbaka till portalen</button>
+<button class="button js-back-to-portal" id="backToPortal" style="display:none">Tillbaka till portalen</button>
 </div>
 
 <!--SETTINGS: CARD STYLE-->
@@ -29,15 +29,15 @@
 <input type="radio" name="cardStyle" value="full">Fyllig (standard)
 <input type="radio" name="cardStyle" value="mini">Kompakt
 <br>
-<button class="button" type="button" onclick="cardStyleSubmit()">Spara val</button>
-<button class="button" type="button" onclick="backToPortal()">Tillbaka till portalen</button>
+<button class="button" type="button" id="btnCardStyleSubmit">Spara val</button>
+<button class="button js-back-to-portal" type="button">Tillbaka till portalen</button>
 </div>
 
 <!--SETTINGS: FILTER SERVICES-->
 <div class="selectIdpDiv" id="spFilterDiv" style="display:none">
 <ul class="ulFilter" id="spFilterList"></ul>
-<button class="button" onclick="myPickedServices()">Välj markerade tjänster</button>
-<button class="button" type="button" onclick="backToPortal()">Tillbaka till portalen</button>
+<button class="button" id="btnMyPickedServices">Välj markerade tjänster</button>
+<button class="button js-back-to-portal" type="button">Tillbaka till portalen</button>
 </div>
 
 <!--SETTINGS: CUSTOM URL:S-->
@@ -48,8 +48,8 @@
   <input type="text" id="custName" name="custName"><br>
   <label for="custUrl">Adress till sidan: </label>
   <input type="text" id="custUrl" name="custUrl"><br><br>
-  <input class="button" type="button" onclick="return addCustomUrl();" value="Spara min länk">
-  <button class="button" type="button" onclick="backToPortal()">Tillbaka till portalen</button>
+  <input class="button" type="button" id="btnAddCustomUrl" value="Spara min länk">
+  <button class="button js-back-to-portal" type="button">Tillbaka till portalen</button>
 </div>
 <br>
 <table><th>Sparade länkar</th></table>
@@ -60,19 +60,19 @@
 <!--TOP BAR-->
 <div class="flex-header wrap">
 <div class="flex-headeritem-org"><h1 id="show">Ingen vald organisation</h1></div>
-<input  class="flex-headeritem-search" type="text" id="searchInput" onkeyup="searchFilter()" placeholder="Sök efter en tjänst.." title="Skriv namn på tjänst">
-<div class="flex-headeritem-org"><button class="button" onclick="settings()">Inställningar</button></div>
+<input  class="flex-headeritem-search" type="text" id="searchInput" placeholder="Sök efter en tjänst.." title="Skriv namn på tjänst">
+<div class="flex-headeritem-org"><button class="button" id="btnSettings">Inställningar</button></div>
 </div>
 
 <!--SETTINGS SECTION-->
 <section class="flex-container wrap" id="settings" style="padding:5px;background-color:white;display:none">
 <div>
-<button class="button" id="newIdp" onclick="newIdp()">Byt inloggning</button>
-<button class="button" onclick="spFilterSettings()">Favoriter</button>
-<button class="button" id="cardStyleSettings" onclick="cardStyleSettings()">Utseende</button>
-<button class="button"id="customUrlSettings" onclick= "customUrlSettings()">Egna länkar</button>
+<button class="button" id="newIdp">Byt inloggning</button>
+<button class="button" id="btnSpFilterSettings">Favoriter</button>
+<button class="button" id="cardStyleSettings">Utseende</button>
+<button class="button" id="customUrlSettings">Egna länkar</button>
 <button class="button">Hjälp</button>
-<button class="button"id="clearAll" onclick= "clearAll()">Återställ</button>
+<button class="button" id="clearAll">Återställ</button>
 </div>
 <div class="selectIdpDiv" id="settingsIdpContent" style="display:none">
 </section>
