@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html lang="sv">
 <head>
 <meta charset="UTF-8">
 <title>Federationsportalen</title>
@@ -8,81 +9,152 @@
 <script src="js/pickidpandsp.js" defer></script>
 </head>
 
-<html>
 <body>
 
 <!--IDP PICKER-->
 <div class="selectIdpDiv" id="idpSelectDiv" style="display:block">
-<h2 id="selectIdpHeading"></h2>
-<p id="currentIdp"></p>
-<select class="button" id="idpSelect">
-<option id="idpSelectOpt" value="" selected>Välj inloggning</option>
-</select>
-<button class="button js-back-to-portal" id="backToPortal" style="display:none">Tillbaka till portalen</button>
+  <div class="modal-content">
+    <h2 id="selectIdpHeading"></h2>
+    <p id="currentIdp"></p>
+    <div class="form-group">
+        <select class="form-control" id="idpSelect">
+        <option id="idpSelectOpt" value="" selected>Välj inloggning</option>
+        </select>
+    </div>
+    <button class="button js-back-to-portal" id="backToPortal" style="display:none">Tillbaka till portalen</button>
+  </div>
 </div>
 
 <!--SETTINGS: CARD STYLE-->
 <div class="selectIdpDiv" id="cardStyle" style="display:none">
-<h2>Välj vilket utseende du vill ha på korten i portalen</h2>
-<img src="img/full.png" style="margin:8px;"><img src="img/mini.png" style="margin:8px;">
-<br>
-<input type="radio" name="cardStyle" value="full">Fyllig (standard)
-<input type="radio" name="cardStyle" value="mini">Kompakt
-<br>
-<button class="button" type="button" id="btnCardStyleSubmit">Spara val</button>
-<button class="button js-back-to-portal" type="button">Tillbaka till portalen</button>
+  <div class="modal-content">
+    <h2>Välj utseende på korten</h2>
+    <div class="card-style-options">
+        <label class="radio-card">
+            <input type="radio" name="cardStyle" value="full">
+            <img src="img/full.png" alt="Fyllig">
+            <span>Fyllig (standard)</span>
+        </label>
+        <label class="radio-card">
+            <input type="radio" name="cardStyle" value="mini">
+            <img src="img/mini.png" alt="Kompakt">
+            <span>Kompakt</span>
+        </label>
+    </div>
+    <div class="modal-actions">
+        <button class="button primary" type="button" id="btnCardStyleSubmit">Spara val</button>
+        <button class="button secondary js-back-to-portal" type="button">Tillbaka</button>
+    </div>
+  </div>
 </div>
 
 <!--SETTINGS: FILTER SERVICES-->
 <div class="selectIdpDiv" id="spFilterDiv" style="display:none">
-<ul class="ulFilter" id="spFilterList"></ul>
-<button class="button" id="btnMyPickedServices">Välj markerade tjänster</button>
-<button class="button js-back-to-portal" type="button">Tillbaka till portalen</button>
+  <div class="modal-content">
+    <h2>Favoriter</h2>
+    <p class="modal-desc">Välj vilka tjänster som ska visas i portalen.</p>
+    <div class="filter-list-container">
+        <ul class="ulFilter" id="spFilterList"></ul>
+    </div>
+    <div class="modal-actions">
+        <button class="button primary" id="btnMyPickedServices">Spara</button>
+        <button class="button secondary js-back-to-portal" type="button">Tillbaka</button>
+    </div>
+  </div>
 </div>
 
 <!--SETTINGS: CUSTOM URL:S-->
-<section class="selectIdpDiv" id="customUrlDiv" style="display:none">
-<h2>Mina egna länkar</h2>
-<div>
-  <label for="custName">Namn i portalen: </label>
-  <input type="text" id="custName" name="custName"><br>
-  <label for="custUrl">Adress till sidan: </label>
-  <input type="text" id="custUrl" name="custUrl"><br><br>
-  <input class="button" type="button" id="btnAddCustomUrl" value="Spara min länk">
-  <button class="button js-back-to-portal" type="button">Tillbaka till portalen</button>
+<div class="selectIdpDiv" id="customUrlDiv" style="display:none">
+  <div class="modal-content">
+    <h2>Mina egna länkar</h2>
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="custName">Namn</label>
+            <input type="text" id="custName" name="custName" class="form-control" placeholder="T.ex. Intranätet">
+        </div>
+        <div class="form-group">
+            <label for="custUrl">Adress (URL)</label>
+            <input type="text" id="custUrl" name="custUrl" class="form-control" placeholder="https://...">
+        </div>
+        <button class="button primary" type="button" id="btnAddCustomUrl">Lägg till</button>
+    </div>
+
+    <div class="saved-urls-container">
+        <h3>Sparade länkar</h3>
+        <table id="showSavedUrls" class="styled-table"></table>
+    </div>
+
+    <div class="modal-actions">
+        <button class="button secondary js-back-to-portal" type="button">Tillbaka</button>
+    </div>
+  </div>
 </div>
-<br>
-<table><th>Sparade länkar</th></table>
-<table id="showSavedUrls"></table>
-<br>
-</section>
 
 <!--TOP BAR-->
-<div class="flex-header wrap">
-<div class="flex-headeritem-org"><h1 id="show">Ingen vald organisation</h1></div>
-<input  class="flex-headeritem-search" type="text" id="searchInput" placeholder="Sök efter en tjänst.." title="Skriv namn på tjänst">
-<div class="flex-headeritem-org"><button class="button" id="btnSettings">Inställningar</button></div>
+<header class="flex-header">
+    <div class="header-left">
+        <h1 id="show">Ingen vald organisation</h1>
+    </div>
+
+    <div class="header-center">
+        <div class="search-wrapper">
+            <input class="search-input" type="text" id="searchInput" placeholder="Sök tjänst..." aria-label="Sök efter en tjänst">
+        </div>
+    </div>
+
+    <div class="header-right">
+        <button class="icon-button" id="themeToggle" aria-label="Växla tema">
+            <span class="theme-icon-moon">🌑</span>
+            <span class="theme-icon-sun">☀️</span>
+        </button>
+        <button class="button outline" id="btnSettings">Inställningar</button>
+    </div>
+</header>
+
+<!--SETTINGS MENU (DROPDOWN/DRAWER)-->
+<div class="settings-drawer" id="settings" style="display:none">
+    <div class="settings-content">
+        <h3>Inställningar</h3>
+        <div class="settings-grid">
+            <button class="settings-card" id="newIdp">
+                <span class="icon">🔄</span>
+                <span class="text">Byt inloggning</span>
+            </button>
+            <button class="settings-card" id="btnSpFilterSettings">
+                <span class="icon">⭐</span>
+                <span class="text">Favoriter</span>
+            </button>
+            <button class="settings-card" id="cardStyleSettings">
+                <span class="icon">🎨</span>
+                <span class="text">Utseende</span>
+            </button>
+            <button class="settings-card" id="customUrlSettings">
+                <span class="icon">🔗</span>
+                <span class="text">Egna länkar</span>
+            </button>
+            <button class="settings-card" id="clearAll">
+                <span class="icon">🗑️</span>
+                <span class="text">Återställ allt</span>
+            </button>
+        </div>
+    </div>
+    <!-- Removed empty settingsIdpContent as it was unused -->
 </div>
 
-<!--SETTINGS SECTION-->
-<section class="flex-container wrap" id="settings" style="padding:5px;background-color:white;display:none">
-<div>
-<button class="button" id="newIdp">Byt inloggning</button>
-<button class="button" id="btnSpFilterSettings">Favoriter</button>
-<button class="button" id="cardStyleSettings">Utseende</button>
-<button class="button" id="customUrlSettings">Egna länkar</button>
-<button class="button">Hjälp</button>
-<button class="button" id="clearAll">Återställ</button>
-</div>
-<div class="selectIdpDiv" id="settingsIdpContent" style="display:none">
-</section>
+<main>
+    <!--SERVICES SSO SECTION-->
+    <section id="spList" class="cards-grid"></section>
 
-<!--SERVICES SSO SECTION-->
-<section id="spList" class="flex-container wrap"></section>
+    <!--CUSTOM URLS non-SSO SECTION-->
+    <div id="custUrlHeadingContainer">
+        <h3 id="custUrlHeading" class="section-heading"></h3>
+    </div>
+    <section id="custUrlList" class="cards-grid"></section>
+</main>
 
-<!--CUSTOM URLS non-SSO SECTION-->
-<h3  id="custUrlHeading" style = "text-align:center"></h3>
-<section id="custUrlList" class="flex-container wrap"></section>
+<footer>
+    <!-- Footer content if any -->
+</footer>
 
 </body>
 </html>
